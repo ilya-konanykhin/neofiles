@@ -1,0 +1,31 @@
+- widget_id ||= input_name.gsub(/\]\[|[^-a-zA-Z0-9:.]/, "_").sub(/_$/, "")
+%div(id=widget_id data-url=neofiles_file_save_path){class: "neofiles-image-compact" + (file ? '' : ' neofiles-image-compact-empty' )}
+
+  - if error.present?
+    %p.neofiles-error
+      = error
+
+  - if file
+    = file.admin_compact_view self
+    %a(href=neofiles_file_remove_path class="neofiles-image-compact-remove")
+      %i.icon-remove
+
+  %span.neofiles-image-compact-upload-icon
+    %i.icon-upload
+
+  = hidden_field_tag input_name, file.try(:id), id: nil, class: 'neofiles-image-transfer-input', disabled: disabled
+  = hidden_field_tag 'neofiles[id]', file.try(:id), id: nil, disabled: disabled
+  = hidden_field_tag 'neofiles[input_name]', input_name, id: nil, disabled: disabled
+  = hidden_field_tag 'neofiles[widget_id]', widget_id, id: nil, disabled: disabled
+  = hidden_field_tag 'neofiles[clean_remove]', clean_remove ? 1 : 0, id: nil, disabled: disabled
+  = hidden_field_tag 'neofiles[append_create]', file ? 0 : (append_create ? 1 : 0), id: nil, disabled: disabled
+  = file_field_tag 'neofiles[file]', id: nil, class: 'neofiles-image-compact-file', disabled: disabled
+
+:javascript
+  $(function() {
+      $("##{widget_id}").image();
+  });
+
+- if append_create and file
+  = render partial: 'file_compact', locals: {file: nil, input_name: input_name, widget_id: widget_id + '_ap', clean_remove: clean_remove, append_create: true, error: nil, disabled: disabled}
+
