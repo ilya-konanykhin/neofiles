@@ -18,7 +18,7 @@ class Neofiles::File
   field :description, type: String
   field :owner_type, type: String
   field :owner_id, type: String
-  field :deleted, type: Boolean
+  field :deleted, type: Mongoid::Boolean
 
   validates :filename, :length, :chunk_size, :md5, presence: true
 
