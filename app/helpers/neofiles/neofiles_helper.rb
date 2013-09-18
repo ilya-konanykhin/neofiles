@@ -27,6 +27,7 @@ module Neofiles::NeofilesHelper
   # Возвращает строку с тэгом A и IMG для картинки, см. #neofiles_img_tag
   # link_attrs, img_attrs - ХТМЛ-свойства тэгов A и IMG соотв.
   def neofiles_img_link(image_file, width = nil, height = nil, resize_options = {}, link_attrs = {}, img_attrs = {})
+    link_attrs[:href] = neofiles_image_path image_file unless link_attrs[:href]
     neofiles_link(image_file, neofiles_img_tag(image_file, width, height, resize_options, img_attrs), link_attrs)
   end
 
