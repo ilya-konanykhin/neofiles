@@ -18,5 +18,10 @@ Gem::Specification.new do |s|
 
   s.add_dependency "rails"
   s.add_dependency "mongoid"
+
+  # Для работы с флешем, точнее, определения ширины и высоты флешевого файла
   s.add_dependency "ruby-imagespec"
+
+  # Обертка для ImageMagick
+  s.add_dependency "mini_magick", "3.4"
 end
