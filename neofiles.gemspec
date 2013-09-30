@@ -23,5 +23,5 @@ Gem::Specification.new do |s|
   s.add_dependency "ruby-imagespec"
 
   # Обертка для ImageMagick
-  s.add_dependency "mini_magick", "3.4"
+  s.add_dependency "mini_magick"
 end
