@@ -1,3 +1,3 @@
-= Neolabs::Neofiles
+# Neolabs::Neofiles
 
 Работа файлами, в частности, с изображениями

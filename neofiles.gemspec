@@ -9,15 +9,14 @@ Gem::Specification.new do |s|
   s.version     = Neofiles::VERSION
   s.authors     = ["Konanykhin Ilya"]
   s.email       = ["rails@neolabs.kz"]
-  s.homepage    = "http://restoran.kz"
-  s.summary     = "TODO: Summary of neofiles."
-  s.description = "TODO: Description of neofiles."
+  s.homepage    = "http://neoweb.kz"
+  s.summary     = "Serves files & images."
+  s.description = "No description yet."
 
-  s.files = Dir["{app,config,db,lib}/**/*"] + ["LICENSE", "Rakefile", "README.rdoc"]
+  s.files = Dir["{app,config,db,lib}/**/*"] + ["LICENSE", "Rakefile", "README.md"]
   s.test_files = Dir["spec/**/*"]
 
   s.add_dependency "rails"
-  # s.add_dependency "jquery-rails"
-
-  # s.add_development_dependency "sqlite3"
+  s.add_dependency "mongoid"
+  s.add_dependency "ruby-imagespec"
 end
