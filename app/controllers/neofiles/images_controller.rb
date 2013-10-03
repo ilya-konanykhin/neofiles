@@ -1,5 +1,5 @@
 # encoding: UTF-8
-class Neofiles::ImagesController < Neofiles::ServeController
+class Neofiles::ImagesController < ActionController::Metal
   MAX_WIDTH = 2000
   MAX_HEIGHT = 2000
 
@@ -55,7 +55,9 @@ class Neofiles::ImagesController < Neofiles::ServeController
     # добавим водяной знак, если нужно
     data = watermark_image(watermark_image, (watermark_width * 0.25).ceil) if watermark_width >= 300 && watermark_height >= 300
 
-    send_data data, options
+    headers['Content-Length'] = data.length.to_s;
+    self.response_body = data
+    self.content_type = options[:type]
   end
 
   private
