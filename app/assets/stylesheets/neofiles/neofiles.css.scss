@@ -51,7 +51,7 @@ INPUT.neofiles-image-compact-file {
 }
 .neofiles-image-compact-loading {
     opacity: .5;
-    background: asset-url(loading.gif) no-repeat center center;
+    background: image-path(loading.gif) no-repeat center center;
 }
 .neofiles-image-compact-loading .neofiles-image-compact-upload-icon,
 .neofiles-image-compact-loading .neofiles-image-compact-remove,
