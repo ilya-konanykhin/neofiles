@@ -8,10 +8,10 @@
   - if file
     = file.admin_compact_view self
     %a(href=neofiles_file_remove_path class="neofiles-image-compact-remove")
-      %i.icon-remove
+      %i.icon-remove.glyphicon.glyphicon-remove
 
   %span.neofiles-image-compact-upload-icon
-    %i.icon-upload
+    %i.icon-upload.glyphicon.glyphicon-upload
 
   = hidden_field_tag input_name, file.try(:id), id: nil, class: 'neofiles-image-transfer-input', disabled: disabled
   = hidden_field_tag 'neofiles[id]', file.try(:id), id: nil, disabled: disabled
