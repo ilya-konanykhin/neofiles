@@ -19,7 +19,8 @@
   = hidden_field_tag 'neofiles[widget_id]', widget_id, id: nil, disabled: disabled
   = hidden_field_tag 'neofiles[clean_remove]', clean_remove ? 1 : 0, id: nil, disabled: disabled
   = hidden_field_tag 'neofiles[append_create]', file ? 0 : (append_create ? 1 : 0), id: nil, disabled: disabled
-  = file_field_tag 'neofiles[file]', id: nil, class: 'neofiles-image-compact-file', disabled: disabled
+  = hidden_field_tag 'neofiles[multiple]', multiple ? 1 : 0, id: nil, disabled: disabled
+  = file_field_tag "neofiles[file]#{'[]' if multiple && !file}", id: nil, class: 'neofiles-image-compact-file', disabled: disabled, multiple: multiple && !file
 
 :javascript
   $(function() {
@@ -27,5 +28,5 @@
   });
 
 - if append_create and file
-  = render partial: 'file_compact', locals: {file: nil, input_name: input_name, widget_id: widget_id + '_ap', clean_remove: clean_remove, append_create: true, error: nil, disabled: disabled}
+  = render partial: 'file_compact', locals: {file: nil, input_name: input_name, widget_id: widget_id + '_ap', clean_remove: clean_remove, append_create: true, error: nil, disabled: disabled, multiple: multiple}
 

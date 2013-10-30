@@ -24,6 +24,7 @@
 
                 dropZone: $form,
                 pasteZone: $form,
+                singleFileUploads: false,
 
                 formData: function() {
                     return $form.find("input, select").serializeArray();

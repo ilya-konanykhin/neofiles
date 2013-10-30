@@ -3,7 +3,8 @@ class Neofiles::AdminController < ApplicationController
 
   skip_before_filter :verify_authenticity_token
 
-  def file_compact
+  def file_compact(fake_request = nil)
+    request = fake_request || self.request
 
     begin
       @file = Neofiles::File.find request[:id] if request[:id].present?
@@ -18,32 +19,52 @@ class Neofiles::AdminController < ApplicationController
     @clean_remove   = request[:clean_remove].present? && request[:clean_remove] != '0'
     @append_create  = request[:append_create].present? && request[:append_create] != '0'
     @disabled       = request[:disabled].present? && request[:disabled] != '0'
+    @multiple       = request[:multiple].present? && request[:multiple] != '0'
     @error        ||= ''
 
-    render layout: false
+    if fake_request
+      return render_to_string action: :file_compact, layout: false
+    else
+      render layout: false
+    end
   end
 
   def file_save
 
     # получим данные, проверим, все ли на месте
     data = request[:neofiles]
-    raise 'Не переданы данные для сохранения' if data.blank? || !(data.is_a? Hash)
-    raise 'Не передан файл для сохранения' unless data[:file].present? && (data[:file].respond_to? :read)
+    raise 'Не переданы данные для сохранения' unless data.is_a? Hash
 
+    files = data[:file]
+    files = [files] unless files.is_a? Array
     old_file = data[:id].present? ? Neofiles::File.find(data[:id]) : nil
 
-    # создадим новый файл, если описание не передано, возьмем от старого, если есть
-    file_class = Neofiles::File.class_by_file_object(data[:file])
-    file = file_class.new do |f|
-      f.description = data[:description].presence || old_file.try(:description)
-      f.file = data[:file]
+    file_objects = []
+    errors = []
+    files.each_with_index do |uploaded_file, i|
+      errors.push("Не передан файл для сохранения (#{i + 1})") and next unless uploaded_file.respond_to? :read
+
+      # создадим новый файл, если описание не передано, возьмем от старого, если есть
+      file_class = Neofiles::File.class_by_file_object(uploaded_file)
+      file = file_class.new do |f|
+        f.description = data[:description].presence || old_file.try(:description)
+        f.file = uploaded_file
+      end
+
+      file.save! rescue errors.push("Ошибка сохранения файла (#{i + 1})") and next
+      file_objects << file
     end
 
-    # сохраним все
-    file.save!
+    result = []
+    file_objects.each_with_index do |file, i|
+      result << file_compact(data.merge(id: file.id, widget_id: "#{data[:widget_id]}_ap_#{i}", append_create: i == file_objects.count - 1 && !old_file && data[:append_create] ? '1' : '0'))
+    end
 
-    # перекинем на просмотр
-    redirect_to neofiles_file_compact_path(data.merge(id: file.id))
+    if result.empty?
+      raise errors.empty? ? 'Не передан файл для сохранения' : errors.join("\n")
+    end
+
+    render text: result.join, layout: false
   end
 
   def file_remove
