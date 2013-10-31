@@ -57,7 +57,7 @@ class Neofiles::AdminController < ApplicationController
 
     result = []
     file_objects.each_with_index do |file, i|
-      result << file_compact(data.merge(id: file.id, widget_id: "#{data[:widget_id]}_ap_#{i}", append_create: i == file_objects.count - 1 && !old_file && data[:append_create] ? '1' : '0'))
+      result << file_compact(data.merge(id: file.id, widget_id: "#{data[:widget_id]}_ap_#{i}", append_create: i == file_objects.count - 1 && !old_file && data[:append_create] == '1' ? '1' : '0'))
     end
 
     if result.empty?
