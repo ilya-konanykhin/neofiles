@@ -1,4 +1,5 @@
 .neofiles-image-compact {
+    box-sizing: border-box;
     display: inline-block;
     position: relative;
     border: 1px solid #ccc;
@@ -9,26 +10,34 @@
     line-height: 1em;
 }
 .neofiles-image-compact-empty {
-    width: 100px;
-    height: 100px;
+    width: 108px;
+    height: 108px;
 }
 .neofiles-image-compact-upload-icon {
     position: absolute;
+    box-sizing: border-box;
     bottom: -7px;
     left: 50%;
     margin-left: -7px;
     background-color: #fff;
     border-radius: 7px;
     opacity: .4;
+    width: 16px;
+    height: 16px;
+    text-align: center;
+    cursor: pointer;
+}
+.neofiles-image-compact-upload-icon .glyphicon {
+    top: 0;
 }
 .neofiles-image-compact-empty .neofiles-image-compact-upload-icon {
     position: static;
     display: block;
     width: 100%;
-    height: 57px;
+    height: 100px;
     margin: 0;
     text-align: center;
-    padding-top: 43px;
+    padding-top: 42px;
 }
 .neofiles-image-compact-upload-icon:hover {
     opacity: 1;
@@ -36,8 +45,9 @@
 .neofiles-image-compact-remove {
     display: block;
     position: absolute;
+    box-sizing: border-box;
     width: 20px;
-    height: 18px; /* 20 - top padding */
+    height: 20px;
     padding-top: 2px;
     right: -10px;
     top: -10px;
@@ -45,6 +55,13 @@
     text-align: center;
     background-color: #ee5f5b;
     box-shadow: 0px 2px 2px rgba(90, 50, 50, .5);
+}
+.neofiles-image-compact-remove .glyphicon {
+    top: 1px;
+    font-size: 12px;
+    line-height: 12px;
+    color: #000;
+    text-shadow: 0 1px 1px rgba(255, 255, 255, .3);
 }
 INPUT.neofiles-image-compact-file {
     display: none !important;
