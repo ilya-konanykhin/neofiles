@@ -1,7 +1,7 @@
 # encoding: UTF-8
 class Neofiles::File
 
-  bson = defined?(Moped::BSON) ? Moped::BSON : BSON
+  BSON = defined?(Moped::BSON) ? Moped::BSON : ::BSON
 
   include Mongoid::Document
   include Mongoid::Timestamps
@@ -197,7 +197,7 @@ class Neofiles::File
 
   # Метод, конструирующий из строки бинарный объект для Монги.
   def self.binary_for(*buf)
-    bson::Binary.new(:generic, buf.join)
+    BSON::Binary.new(:generic, buf.join)
   end
 
   # Получим имя файла (без директории) для входного объекта. Пробуем разные способы: :path, :filename etc.
