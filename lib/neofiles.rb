@@ -14,7 +14,7 @@ module Neofiles
       get  '/admin/redactor-list/:owner_type/:owner_id/:type', to: 'admin#redactor_list', as: 'neofiles_redactor_list'
 
       get  '/serve/:id', to: 'files#show', as: 'neofiles_file'
-      get  '/serve-image/:id(/:format(/c:crop))', to: 'images#show', as: 'neofiles_image', constraints: {format: /[1-9]\d*x[1-9]\d*/, crop: /[10]/}
+      get  '/serve-image/:id(/:format(/c:crop)(/q:quality))', to: 'images#show', as: 'neofiles_image', constraints: {format: /[1-9]\d*x[1-9]\d*/, crop: /[10]/, quality: /[1-9]\d*/}
     end
   end
 end
