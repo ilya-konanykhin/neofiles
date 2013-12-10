@@ -51,7 +51,14 @@ class Neofiles::AdminController < ApplicationController
         f.file = uploaded_file
       end
 
-      file.save! rescue errors.push("Ошибка сохранения файла (#{i + 1})") and next
+      begin
+        file.save!
+      rescue Exception => ex
+        notify_airbrake(ex) if defined? notify_airbrake
+        errors.push("Ошибка сохранения файла (#{i + 1})")
+        next
+      end
+
       file_objects << file
     end
 
