@@ -11,7 +11,7 @@ module Neofiles::NeofilesHelper
       resize_options = resize_options.merge(format: [width.to_i, height.to_i].join("x")) if width.to_i > 0 && height.to_i > 0
 
       html_attrs.symbolize_keys!
-      html_attrs[:src] = neofiles_image_path(image_file, resize_options)
+      html_attrs[:src] = neofiles_image_url(image_file, resize_options)
 
       dest_width, dest_height = dimensions_after_resize(image_file, width.to_i, height.to_i, resize_options)
       if dest_width and dest_height
@@ -27,14 +27,14 @@ module Neofiles::NeofilesHelper
   # Возвращает строку с тэгом A и IMG для картинки, см. #neofiles_img_tag
   # link_attrs, img_attrs - ХТМЛ-свойства тэгов A и IMG соотв.
   def neofiles_img_link(image_file, width = nil, height = nil, resize_options = {}, link_attrs = {}, img_attrs = {})
-    link_attrs[:href] = neofiles_image_path image_file unless link_attrs[:href]
+    link_attrs[:href] = neofiles_image_url image_file unless link_attrs[:href]
     neofiles_link(image_file, neofiles_img_tag(image_file, width, height, resize_options, img_attrs), link_attrs)
   end
 
   # Возвращает строку с тэгом A с путем до файла file (ID или объект Neofiles::File).
   # tag_content будет сформирован автоматом, если не передан.
   def neofiles_link(file, tag_content = nil, html_attrs = {})
-    html_attrs[:href] = neofiles_file_path file unless html_attrs[:href]
+    html_attrs[:href] = neofiles_file_url file unless html_attrs[:href]
     content_tag(:a, tag_content.presence || file.description.presence || file.filename, html_attrs)
   end
 
@@ -75,6 +75,25 @@ module Neofiles::NeofilesHelper
 HTML
     result.html_safe
   end
+
+  def neofiles_file_url(*args)
+    cdns = Rails.application.config.neofiles.cdns || []
+    cdns << root_url unless cdns.any?
+
+    if cdns.count > 1
+      id = if args.first.is_a? Neofiles::File then args.first.id else args.first end
+      id = Neofiles::File::BSON::ObjectId.from_string(id) unless id.is_a? Neofiles::File::BSON::ObjectId
+      cdn = cdns[id.generation_time.sec % cdns.count]
+    else
+      cdn = cdns.first
+    end
+
+    cdn.sub! /\/\z/, ''
+    cdn = 'http://' + cdn unless cdn =~ /\Ahttp[s]?:\/\//
+
+    cdn + neofiles_image_path(*args)
+  end
+  alias_method :neofiles_image_url, :neofiles_file_url
 
   private
 
