@@ -197,7 +197,9 @@ class Neofiles::File
 
   # Метод, конструирующий из строки бинарный объект для Монги.
   def self.binary_for(*buf)
-    BSON::Binary.new(:generic, buf.join)
+    args = [buf.join, :generic]
+    args.reverse! if defined?(::Moped::BSON) && BSON == ::Moped::BSON
+    BSON::Binary.new(*args)
   end
 
   # Получим имя файла (без директории) для входного объекта. Пробуем разные способы: :path, :filename etc.
