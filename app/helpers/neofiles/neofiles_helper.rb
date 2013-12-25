@@ -76,7 +76,7 @@ HTML
     result.html_safe
   end
 
-  def neofiles_file_url(*args)
+  def neofiles_cdn_prefix(*args)
     cdns = Rails.application.config.neofiles.cdns || []
     cdns << root_url unless cdns.any?
 
@@ -90,10 +90,16 @@ HTML
 
     cdn.sub! /\/\z/, ''
     cdn = 'http://' + cdn unless cdn =~ /\Ahttp[s]?:\/\//
-
-    cdn + neofiles_image_path(*args)
+    cdn
   end
-  alias_method :neofiles_image_url, :neofiles_file_url
+
+  def neofiles_file_url(*args)
+    neofiles_cdn_prefix(*args) + neofiles_file_path(*args)
+  end
+
+  def neofiles_image_url(*args)
+    neofiles_cdn_prefix(*args) + neofiles_image_path(*args)
+  end
 
   private
 
