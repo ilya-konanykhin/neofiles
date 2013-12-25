@@ -51,9 +51,14 @@ class Neofiles::ImagesController < ActionController::Metal
         end
       else
         # обрезка не нужна, впишем в формат WxH с сохранением пропорций (результат может отличаться по одной стороне)
-        image.combine_options do |c|
-          c.resize "#{width}x#{height}"
-          c.quality "#{quality}" if setting_quality
+        if image_file.width > width || image_file.height > height
+          image.combine_options do |c|
+            c.resize "#{width}x#{height}"
+            c.quality "#{quality}" if setting_quality
+          end
+        else
+          setting_quality = false
+          watermark_width, watermark_height = image_file.width, image_file.height
         end
       end
 
