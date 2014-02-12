@@ -70,7 +70,7 @@ module Neofiles::NeofilesHelper
         <!--<![endif]-->
       </object>
       <script type="text/javascript">
-			  swfobject.registerObject("#{id}", "9.0.0");
+        try { swfobject.registerObject("#{id}", "9.0.0"); }
 		  </script>
 HTML
     result.html_safe
