@@ -41,6 +41,7 @@ class Neofiles::AdminController < ApplicationController
 
     file_objects = []
     errors = []
+    last_exception = nil
     files.each_with_index do |uploaded_file, i|
       errors.push("Не передан файл для сохранения (#{i + 1})") and next unless uploaded_file.respond_to? :read
 
@@ -54,8 +55,8 @@ class Neofiles::AdminController < ApplicationController
       begin
         file.save!
       rescue Exception => ex
+        last_exception = ex
         notify_airbrake(ex) if defined? notify_airbrake
-        errors.push("Ошибка сохранения файла (#{i + 1})")
         next
       end
 
@@ -68,7 +69,7 @@ class Neofiles::AdminController < ApplicationController
     end
 
     if result.empty?
-      raise errors.empty? ? 'Не передан файл для сохранения' : errors.join("\n")
+      raise last_exception || (errors.empty? ? 'Не передан файл для сохранения' : errors.join("\n"))
     end
 
     render text: result.join, layout: false
