@@ -1,5 +1,10 @@
 # encoding: UTF-8
-class Neofiles::FilesController < Neofiles::ServeController
+class Neofiles::FilesController < ActionController::Metal
+
+  include ActionController::DataStreaming
+  include ActionController::Redirecting
+  include Rails.application.routes.url_helpers
+  include Neofiles::NotFound
 
   def show
     file = Neofiles::File.find params[:id]
@@ -10,8 +15,8 @@ class Neofiles::FilesController < Neofiles::ServeController
 
     send_data file.data, {
       filename: file.filename,
-      type: file.content_type || "application/octet-stream",
-      disposition: "inline",
+      type: file.content_type,
+      disposition: 'inline',
     }
   end
 end

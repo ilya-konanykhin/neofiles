@@ -1,5 +1,8 @@
 # encoding: UTF-8
 class Neofiles::ImagesController < ActionController::Metal
+
+  include Neofiles::NotFound
+
   MAX_WIDTH = 2000
   MAX_HEIGHT = 2000
 
