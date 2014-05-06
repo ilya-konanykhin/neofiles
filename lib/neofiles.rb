@@ -15,6 +15,10 @@ module Neofiles
 
       get  '/serve/:id', to: 'files#show', as: 'neofiles_file'
       get  '/serve-image/:id(/:format(/c:crop)(/q:quality))', to: 'images#show', as: 'neofiles_image', constraints: {format: /[1-9]\d*x[1-9]\d*/, crop: /[10]/, quality: /[1-9]\d*/}
+
+      # получаем полную картинку без водяного знака
+      # путь начинается с nowm, чтобы nginx не кэшировал его, наравне с /serve*
+      get  '/nowm-serve-image/:id', to: 'images#show', as: 'neofiles_image_nowm', defaults: {nowm: true}
     end
   end
 end

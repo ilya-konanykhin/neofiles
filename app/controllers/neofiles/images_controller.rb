@@ -1,7 +1,14 @@
 # encoding: UTF-8
 class Neofiles::ImagesController < ActionController::Metal
 
+  class NotAdminException < Exception; end
+
   include Neofiles::NotFound
+
+  if defined?(Devise)
+    include ActionController::Helpers
+    include Devise::Controllers::Helpers
+  end
 
   MAX_WIDTH = 2000
   MAX_HEIGHT = 2000
@@ -14,6 +21,8 @@ class Neofiles::ImagesController < ActionController::Metal
   #
   # Водяной знак добавляется автоматом из картинки /assets/images/neofiles-watermark.png, если размер получающейся
   # картинки больше некоего предела (даже если обрезки нет).
+  #
+  # Если передан параметр nowm, и человек админ, то не ставим водяной знак.
   def show
 
     # получим, проверим
@@ -77,12 +86,21 @@ class Neofiles::ImagesController < ActionController::Metal
     end
 
     # добавим водяной знак, если нужно
-    data = watermark_image(watermark_image, (watermark_width * 0.25).ceil) if watermark_width >= 300 && watermark_height >= 300
+    if watermark_width >= 300 && watermark_height >= 300 && !nowm?
+      data = watermark_image(watermark_image, (watermark_width * 0.25).ceil)
+    end
 
     headers['Content-Length'] = data.length.to_s
     self.response_body = data
     self.content_type = options[:type]
+
+  rescue NotAdminException
+    self.response_body = "Ошибка 403: недостаточно прав для получения файла в таком формате"
+    self.content_type = 'text/plain; charset=utf-8'
+    self.status = 403
   end
+
+
 
   private
 
@@ -95,5 +113,17 @@ class Neofiles::ImagesController < ActionController::Metal
         preferred_width = [200, preferred_width].max if preferred_width > 0
         c.geometry "#{preferred_width}x+0+20"
       end.to_blob
+    end
+
+    def nowm?
+      params[:nowm] == true && admin_or_die
+    end
+
+    def admin_or_die
+      if try(:current_admin)
+        true
+      else
+        raise NotAdminException
+      end
     end
 end
