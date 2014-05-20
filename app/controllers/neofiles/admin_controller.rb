@@ -53,6 +53,7 @@ class Neofiles::AdminController < ApplicationController
       end
 
       begin
+        Rails.application.config.neofiles.before_save.try!(:call, file)
         file.save!
       rescue Exception => ex
         last_exception = ex
@@ -116,6 +117,7 @@ class Neofiles::AdminController < ApplicationController
     end
 
     # сохраним все
+    Rails.application.config.neofiles.before_save.try!(:call, file)
     file.save!
 
     # вернем путь до загруженного файла

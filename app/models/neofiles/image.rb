@@ -4,6 +4,12 @@ class Neofiles::Image < Neofiles::File
   field :width, type: Integer
   field :height, type: Integer
 
+  # Если нужно перед сохранением обрезать картинку, нужно сюда записать в одном из форматов:
+  #   [w, h]
+  #   {width: w, height: h}
+  #   wh # если одно значение на обе стороны
+  attr_accessor :crop_before_save
+
   # Перед сохранением обработаем поворот картинки (если есть инфа) и запишем ширину и высоту.
   # Обязательно вызовем родительский save_file.
   #
@@ -45,6 +51,18 @@ class Neofiles::Image < Neofiles::File
 
     # уберем все левые данные (нужно ли?)
     image.strip
+
+    # обрежем, если нужно
+    if crop_dimensions = crop_before_save
+      if crop_dimensions.is_a? Hash
+        crop_dimensions = crop_dimensions.values_at :width, :height
+      elsif !(crop_dimensions.is_a? Array)
+        crop_dimensions = [crop_dimensions, crop_dimensions]
+      end
+
+      image.resize crop_dimensions.join('x').concat('>')
+      dimensions = image[:dimensions]
+    end
 
     # сохраним ширину, высоту и тип
     self.width = dimensions[0]
