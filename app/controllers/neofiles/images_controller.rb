@@ -87,7 +87,7 @@ class Neofiles::ImagesController < ActionController::Metal
 
     # добавим водяной знак, если нужно
     if watermark_width >= 300 && watermark_height >= 300 && !nowm?
-      data = watermark_image(watermark_image, (watermark_width * 0.25).ceil)
+      data = Neofiles.watermarker.(watermark_image, (watermark_width * 0.25).ceil)
     end
 
     headers['Content-Length'] = data.length.to_s
