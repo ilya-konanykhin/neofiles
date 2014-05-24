@@ -116,7 +116,7 @@ class Neofiles::ImagesController < ActionController::Metal
     end
 
     def nowm?
-      params[:nowm] == true && admin_or_die
+      params[:nowm] == "true" && admin_or_die
     end
 
     def admin_or_die
