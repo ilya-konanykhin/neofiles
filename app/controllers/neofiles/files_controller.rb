@@ -13,10 +13,13 @@ class Neofiles::FilesController < ActionController::Metal
       redirect_to neofiles_image_path(params) and return
     end
 
-    send_data file.data, {
-      filename: file.filename,
+    send_file_headers!({
+      filename: CGI::escape(file.filename),
       type: file.content_type,
       disposition: 'inline',
-    }
+    })
+
+    self.status = 200
+    self.response_body = file.data
   end
 end

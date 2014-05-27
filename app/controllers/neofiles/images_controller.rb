@@ -3,6 +3,8 @@ class Neofiles::ImagesController < ActionController::Metal
 
   class NotAdminException < Exception; end
 
+  include ActionController::DataStreaming
+  include ActionController::RackDelegation
   include Neofiles::NotFound
 
   if defined?(Devise)
@@ -31,7 +33,7 @@ class Neofiles::ImagesController < ActionController::Metal
     # данные для отсылки
     data = image_file.data
     options = {
-      filename: image_file.filename,
+      filename: CGI::escape(image_file.filename),
       type: image_file.content_type || 'image/jpeg',
       disposition: 'inline',
     }
@@ -90,9 +92,10 @@ class Neofiles::ImagesController < ActionController::Metal
       data = Neofiles.watermarker.(watermark_image, (watermark_width * 0.25).ceil)
     end
 
+    send_file_headers! options
     headers['Content-Length'] = data.length.to_s
+    self.status = 200
     self.response_body = data
-    self.content_type = options[:type]
 
   rescue NotAdminException
     self.response_body = "Ошибка 403: недостаточно прав для получения файла в таком формате"
