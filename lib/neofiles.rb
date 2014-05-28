@@ -3,16 +3,6 @@ require "neofiles/engine"
 
 module Neofiles
   # maybe config
-  mattr_accessor :watermarker
-  @@watermarker = ->(image, preferred_width = nil){
-    image = MiniMagick::Image.read image unless image.is_a? MiniMagick::Image
-
-    image.composite(MiniMagick::Image.open(Rails.root.join("app", "assets", "images", "neofiles-watermark.png"))) do |c|
-      c.gravity 'south'
-      preferred_width = [200, preferred_width].max if preferred_width > 0
-      c.geometry "#{preferred_width}x+0+20"
-    end.to_blob
-  }
 
   mattr_accessor :routes_proc
   @@routes_proc = proc do
