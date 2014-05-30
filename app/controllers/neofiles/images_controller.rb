@@ -87,10 +87,15 @@ class Neofiles::ImagesController < ActionController::Metal
       options[:type] = image.mime_type
     end
 
+    watermark_image = MiniMagick::Image.read watermark_image unless watermark_image.is_a? MiniMagick::Image
+
     # добавим водяной знак, если нужно
-    if watermark_width >= 300 && watermark_height >= 300 && !nowm?
-      data = Rails.application.config.neofiles.watermarker.(watermark_image)
-    end
+    data = Rails.application.config.neofiles.watermarker.(
+      watermark_image,
+      no_watermark: nowm?,
+      watermark_width: watermark_width,
+      watermark_height: watermark_height
+    )
 
     send_file_headers! options
     headers['Content-Length'] = data.length.to_s

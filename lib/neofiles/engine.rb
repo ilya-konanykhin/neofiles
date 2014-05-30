@@ -6,8 +6,10 @@ module Neofiles
     config.neofiles = ActiveSupport::OrderedOptions.new
 
     # default watermarker
-    config.neofiles.watermarker = ->(image){
-      image = MiniMagick::Image.read image unless image.is_a? MiniMagick::Image
+    config.neofiles.watermarker = ->(image, no_watermark: false, watermark_width:, watermark_height:){
+      if watermark_width < 300 || watermark_height < 300 || no_watermark
+        return image.to_blob
+      end
 
       image.composite(MiniMagick::Image.open(Rails.root.join("app", "assets", "images", "neofiles-watermark.png"))) do |c|
         c.gravity 'south'
