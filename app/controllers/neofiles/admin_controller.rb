@@ -86,7 +86,7 @@ class Neofiles::AdminController < ApplicationController
     file = Neofiles::File.find data[:id]
 
     # реально мы не удаляем файл
-    file.deleted = true
+    file.is_deleted = true
     file.save!
 
     # если передан clean_remove (не 0), то вернем пустой результат
