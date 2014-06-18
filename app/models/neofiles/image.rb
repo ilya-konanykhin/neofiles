@@ -4,6 +4,8 @@ class Neofiles::Image < Neofiles::File
   field :width, type: Integer
   field :height, type: Integer
 
+  field :no_wm, type: Mongoid::Boolean
+
   # Если нужно перед сохранением обрезать картинку, нужно сюда записать в одном из форматов:
   #   [w, h]
   #   {width: w, height: h}

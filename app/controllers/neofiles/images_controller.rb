@@ -92,7 +92,7 @@ class Neofiles::ImagesController < ActionController::Metal
     # добавим водяной знак, если нужно
     data = Rails.application.config.neofiles.watermarker.(
       watermark_image,
-      no_watermark: nowm?,
+      no_watermark: nowm?(image_file),
       watermark_width: watermark_width,
       watermark_height: watermark_height
     )
@@ -123,8 +123,8 @@ class Neofiles::ImagesController < ActionController::Metal
       end.to_blob
     end
 
-    def nowm?
-      params[:nowm] == true && admin_or_die
+    def nowm?(image_file)
+      image_file.no_wm? || (params[:nowm] == true && admin_or_die)
     end
 
     def admin_or_die
