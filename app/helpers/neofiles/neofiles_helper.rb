@@ -41,7 +41,6 @@ module Neofiles::NeofilesHelper
   def swf_embed(id, url, width, height, bgcolor, click_tag, alt = '')
     url = h(url)
     click_tag = h(click_tag)
-    width, height = width.to_i, height.to_i
 
     result = <<HTML
       <object classid="clsid:D27CDB6E-AE6D-11cf-96B8-444553540000" width="#{width}" height="#{height}" id="#{id}">
