@@ -10,6 +10,7 @@ module Neofiles
       get  '/admin/file_compact/', to: 'admin#file_compact', as: 'neofiles_file_compact'
       post '/admin/file_save/', to: 'admin#file_save', as: 'neofiles_file_save'
       post '/admin/file_remove/', to: 'admin#file_remove', as: 'neofiles_file_remove'
+      post '/admin/file_update/', to: 'admin#file_update', as: 'neofiles_file_update'
 
       post '/admin/redactor-upload/', to: 'admin#redactor_upload', as: 'neofiles_redactor_upload'
       get  '/admin/redactor-list/:owner_type/:owner_id/:type', to: 'admin#redactor_list', as: 'neofiles_redactor_list'

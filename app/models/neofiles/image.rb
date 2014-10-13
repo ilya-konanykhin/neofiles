@@ -105,4 +105,8 @@ class Neofiles::Image < Neofiles::File
     template.neofiles_img_link self, 100, 100, {}, target: '_blank', href: template.neofiles_image_nowm_path(self)
   end
 
+  def no_wm=(value)
+    write_attribute :no_wm, value.is_a?(String) ? value == "1" : value
+  end
+
 end

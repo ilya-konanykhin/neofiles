@@ -30,8 +30,6 @@ class Neofiles::AdminController < ApplicationController
   end
 
   def file_save
-
-    # получим данные, проверим, все ли на месте
     data = request[:neofiles]
     raise 'Не переданы данные для сохранения' unless data.is_a? Hash
 
@@ -77,13 +75,7 @@ class Neofiles::AdminController < ApplicationController
   end
 
   def file_remove
-
-    # получим данные, проверим, все ли на месте
-    data = request[:neofiles]
-    raise 'Не переданы данные для сохранения' if data.blank? || !(data.is_a? Hash)
-    raise 'Не передан ID файла для удаления' unless data[:id].present?
-
-    file = Neofiles::File.find data[:id]
+    file, data = find_file_and_data
 
     # реально мы не удаляем файл
     file.is_deleted = true
@@ -96,11 +88,15 @@ class Neofiles::AdminController < ApplicationController
     redirect_to neofiles_file_compact_path(data.merge(id: nil))
   end
 
+  def file_update
+    file, data = find_file_and_data
+    file.update data.slice(:description, :no_wm)
+    render text: "", layout: false
+  end
+
   # Обработка загрузки файла через redactor.js. Получает файл и мета-данные (owner_type, owner_id) и отдает JSON,
   # в котором путь до загруженного файла.
   def redactor_upload
-
-    # получим данные, проверим, все ли на месте
     owner_type, owner_id, file = prepare_owner_type(request[:owner_type]), request[:owner_id], request[:file]
     raise 'Не переданы данные для сохранения' if owner_type.blank? or owner_id.blank?
     raise 'Не передан файл для сохранения' unless file.present? and file.respond_to? :read
@@ -127,7 +123,6 @@ class Neofiles::AdminController < ApplicationController
 
   # Список загруженных файлов в формате JSON для redactor.js.
   def redactor_list
-
     type, owner_type, owner_id = request[:type], prepare_owner_type(request[:owner_type]), request[:owner_id]
 
     # по-умолчанию тип file
@@ -166,8 +161,15 @@ class Neofiles::AdminController < ApplicationController
   end
 
   protected
-  def prepare_owner_type(type)
-    type.to_s.gsub(':', '/')
-  end
+    def find_file_and_data
+      data = request[:neofiles]
+      raise 'Не переданы данные для сохранения' if data.blank? || !(data.is_a? Hash)
+      raise 'Не передан ID файла для удаления' unless data[:id].present?
 
+      [Neofiles::File.find(data[:id]), data]
+    end
+
+    def prepare_owner_type(type)
+      type.to_s.gsub(':', '/')
+    end
 end

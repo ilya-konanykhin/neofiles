@@ -1,36 +1,45 @@
 .neofiles-image-compact {
-    box-sizing: border-box;
-    display: inline-block;
-    position: relative;
-    border: 1px solid #ccc;
-    background-color: #fff;
-    margin-bottom: 10px;
-    vertical-align: top;
-    padding: 3px;
-    line-height: 1em;
+  box-sizing: border-box;
+  display: inline-block;
+  position: relative;
+  border: 1px solid #ccc;
+  background-color: #fff;
+  margin-bottom: 10px;
+  vertical-align: top;
+  padding: 3px;
+  line-height: 1em;
+
+  .popover-content {
+    width: 250px;
+  }
 }
 .neofiles-image-compact-empty {
-    width: 108px;
-    height: 108px;
+  width: 108px;
+  height: 108px;
 }
 .neofiles-image-compact-upload-icon {
-    position: absolute;
-    box-sizing: border-box;
-    bottom: -7px;
-    left: 50%;
-    margin-left: -7px;
-    background-color: #fff;
-    border-radius: 7px;
-    opacity: .4;
-    width: 16px;
-    height: 16px;
-    text-align: center;
-    cursor: pointer;
-}
-.neofiles-image-compact-upload-icon .glyphicon {
+  position: absolute;
+  box-sizing: border-box;
+  bottom: -7px;
+  left: 50%;
+  margin-left: -7px;
+  background-color: #fff;
+  border-radius: 7px;
+  opacity: .1;
+  width: 16px;
+  height: 16px;
+  text-align: center;
+  cursor: pointer;
+
+  &:hover {
+    opacity: 1;
+  }
+
+  .glyphicon {
     top: 0;
-}
-.neofiles-image-compact-empty .neofiles-image-compact-upload-icon {
+  }
+
+  .neofiles-image-compact-empty & {
     position: static;
     display: block;
     width: 100%;
@@ -38,48 +47,58 @@
     margin: 0;
     text-align: center;
     padding-top: 42px;
+  }
 }
-.neofiles-image-compact-upload-icon:hover {
-    opacity: 1;
-}
-.neofiles-image-compact-remove {
-    display: block;
-    position: absolute;
-    box-sizing: border-box;
-    width: 20px;
-    height: 20px;
-    padding-top: 2px;
-    right: -10px;
-    top: -10px;
-    border-radius: 10px;
-    text-align: center;
-    background-color: #ee5f5b;
-    box-shadow: 0px 2px 2px rgba(90, 50, 50, .5);
-}
-.neofiles-image-compact-remove .glyphicon {
+.neofiles-image-compact-remove, .neofiles-image-compact-options {
+  display: block;
+  position: absolute;
+  box-sizing: border-box;
+  width: 20px;
+  height: 20px;
+  padding-top: 2px;
+  right: -10px;
+  top: -10px;
+  border-radius: 10px;
+  text-align: center;
+  background-color: #ee5f5b;
+  box-shadow: 0px 2px 2px rgba(90, 50, 50, .5);
+  opacity: .2;
+
+  .glyphicon {
     top: 1px;
     font-size: 12px;
     line-height: 12px;
     color: #000;
     text-shadow: 0 1px 1px rgba(255, 255, 255, .3);
+  }
+
+  &:hover {
+    opacity: 1;
+  }
+}
+.neofiles-image-compact-options {
+  top: 12px;
+  background-color: #fff;
 }
 INPUT.neofiles-image-compact-file {
-    display: none !important;
+  display: none !important;
 }
 .neofiles-image-compact-loading {
-    opacity: .5;
-    background: image-path("loading.gif") no-repeat center center;
-}
-.neofiles-image-compact-loading .neofiles-image-compact-upload-icon,
-.neofiles-image-compact-loading .neofiles-image-compact-remove,
-.neofiles-image-compact-loading .neofiles-image-compact-file {
+  opacity: .5;
+  background: image-path("loading.gif") no-repeat center center;
+
+  .neofiles-image-compact-upload-icon,
+  .neofiles-image-compact-remove,
+  .neofiles-image-compact-options,
+  .neofiles-image-compact-file {
     visibility: hidden;
+  }
 }
 
 .neofiles-album-compact {
-    margin-bottom: 10px;
+  margin-bottom: 10px;
 }
 .neofiles-album-compact .neofiles-image-compact {
-    margin-right: 20px;
-    margin-bottom: 20px;
+  margin-right: 20px;
+  margin-bottom: 20px;
 }
