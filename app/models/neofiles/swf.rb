@@ -19,7 +19,7 @@ class Neofiles::Swf < Neofiles::File
   # Как будет выглядеть в админке этот файл в "компактном" представлении (при загрузке, в альбомах и т. п.)
   # Картинка показывается в виде ссылки с необрезанной иконкой 100 на 100.
   def admin_compact_view(view_context)
-    view_context.neofiles_link self, view_context.tag(:img, src: view_context.image_path('swf-thumb-100x100.png')), target: '_blank'
+    view_context.neofiles_link self, view_context.tag(:img, src: view_context.image_path('neofiles/swf-thumb-100x100.png')), target: '_blank'
   end
 
   protected
