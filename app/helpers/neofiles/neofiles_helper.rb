@@ -80,9 +80,19 @@ HTML
     cdns << root_url unless cdns.any?
 
     if cdns.count > 1
-      id = if args.first.is_a? Neofiles::File then args.first.id else args.first end
-      id = Neofiles::File::BSON::ObjectId.from_string(id) unless id.is_a? Neofiles::File::BSON::ObjectId
-      cdn = cdns[id.generation_time.sec % cdns.count]
+      some_file = args.first
+      case some_file.is_a?
+        when Neofiles::File
+          gen_time = some_file.id.generation_time.sec
+        when Hash
+          tmp = some_file[:id] || some_file['id'] || some_file[:_id] || some_file['_id'] || ""
+          gen_time = Neofiles::File::BSON::ObjectId.legal?(tmp) ? Neofiles::File::BSON::ObjectId.from_string(tmp).generation_time.sec : Time.now.strftime('%U')
+        when String
+          gen_time = Neofiles::File::BSON::ObjectId.legal?(some_file) ? Neofiles::File::BSON::ObjectId.from_string(some_file).generation_time.sec : Time.now.strftime('%U')
+        else
+          gen_time = Time.now.strftime('%U')
+      end
+      cdn = cdns[gen_time % cdns.count]
     else
       cdn = cdns.first
     end
