@@ -106,10 +106,12 @@ class Neofiles::AdminController < ApplicationController
 
     # создадим новый файл
     file = file_class.new do |f|
-      f.owner_type = owner_type
-      f.owner_id   = owner_id
+      f.owner_type  = owner_type
+      f.owner_id    = owner_id
       f.description = request[:description].presence
-      f.file = file
+
+      f.no_wm = true if f.respond_to?(:no_wm)
+      f.file  = file
     end
 
     # сохраним все
