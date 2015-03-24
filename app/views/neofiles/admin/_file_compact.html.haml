@@ -15,7 +15,11 @@
         %p= file.description
 
       %p Создан #{l file.created_at, format: "%d.%m.%Y <span class=\"muted text-muted\">в %H:%M</span>"}
-      %p= ["#{file.dimensions.join('&times;').html_safe} px", "#{file.length} байт"].compact.join(", ")
+      - file_options = []
+      - if file.respond_to? :dimensions
+        - file_options << "#{file.dimensions.join('×').html_safe} px"
+      - file_options << "#{number_to_human_size file.length, precision: 0}"
+      %p= file_options.join(", ")
 
       - if file.owner_type.present? || file.owner_id.present?
         %p Владелец: #{file.owner_type}#{file.owner_id}
