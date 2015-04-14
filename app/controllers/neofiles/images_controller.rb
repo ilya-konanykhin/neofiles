@@ -128,7 +128,7 @@ class Neofiles::ImagesController < ActionController::Metal
     end
 
     def admin_or_die
-      if try(:current_admin)
+      if Rails.application.config.neofiles.current_admin.call
         true
       else
         raise NotAdminException
