@@ -10,7 +10,7 @@
     %a(href=neofiles_file_remove_path class="neofiles-image-compact-remove")
       %i.icon-remove.glyphicon.glyphicon-remove
 
-    - if Rails.application.config.neofiles.current_admin.call
+    - if Rails.application.config.neofiles.try(:current_admin).try(:call)
       - options_form = capture do
         - if file.description.present?
           %p= file.description
@@ -33,7 +33,6 @@
               = check_box_tag uniq_name, "1", file.no_wm, class: "neofiles-image-compact-nowm", data: {update_url: neofiles_file_update_path}
               не ставить водяной знак
 
-    - if Rails.application.config.neofiles.current_admin.call
       %a(href="#" tabindex="0" class="neofiles-image-compact-options" data-toggle="popover" data-trigger="click" data-placement="top" data-html="true" data-animation="false" data-title="#{file.filename}" data-content=options_form)
         %i.icon-wrench.glyphicon.glyphicon-wrench
 
