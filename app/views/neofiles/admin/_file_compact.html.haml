@@ -10,7 +10,7 @@
     %a(href=neofiles_file_remove_path class="neofiles-image-compact-remove")
       %i.icon-remove.glyphicon.glyphicon-remove
 
-    - if Rails.application.config.neofiles.try(:current_admin).try(:call)
+    - if Rails.application.config.neofiles.try(:current_admin).try(:call, self)
       - options_form = capture do
         - if file.description.present?
           %p= file.description
