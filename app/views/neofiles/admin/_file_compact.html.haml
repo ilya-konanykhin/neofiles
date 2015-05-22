@@ -10,30 +10,36 @@
     %a(href=neofiles_file_remove_path class="neofiles-image-compact-remove")
       %i.icon-remove.glyphicon.glyphicon-remove
 
-    - options_form = capture do
-      - if file.description.present?
-        %p= file.description
+    - if Rails.application.config.neofiles.try(:current_admin).try(:call, self)
+      - options_form = capture do
+        - if file.description.present?
+          %p= file.description
 
-      %p Создан #{l file.created_at, format: "%d.%m.%Y <span class=\"muted text-muted\">в %H:%M</span>"}
-      %p= ["#{file.dimensions.join('&times;').html_safe} px", "#{file.length} байт"].compact.join(", ")
+        %p Создан #{l file.created_at, format: "%d.%m.%Y <span class=\"muted text-muted\">в %H:%M</span>"}
 
-      - if file.owner_type.present? || file.owner_id.present?
-        %p Владелец: #{file.owner_type}#{file.owner_id}
+        - file_options = []
+        - if file.respond_to? :dimensions
+          - file_options << "#{file.dimensions.join('×').html_safe} px"
+        - file_options << "#{number_to_human_size file.length, precision: 0}"
+        %p= file_options.join(", ")
+        
+        %p
+          - area_name = "#{widget_id}_description"
+          = text_area_tag area_name, file.description, class: "neofiles-image-compact-description", placeholder: 'Описание изображения...', data: {update_url: neofiles_file_update_path}
 
-      %p
-        - area_name = "#{widget_id}_description"
-        = text_area_tag area_name, file.description, class: "neofiles-image-compact-description", placeholder: 'Описание изображения...', data: {update_url: neofiles_file_update_path}
 
+        - if file.owner_type.present? || file.owner_id.present?
+          %p Владелец: #{file.owner_type}#{file.owner_id}
 
-      - if file.respond_to? :no_wm
-        %p.checkbox
-          - uniq_name = "#{widget_id}_no_wm"
-          %label(for=uniq_name)
-            = check_box_tag uniq_name, "1", file.no_wm, class: "neofiles-image-compact-nowm", data: {update_url: neofiles_file_update_path}
-            не ставить водяной знак
+        - if file.respond_to? :no_wm
+          %p.checkbox
+            - uniq_name = "#{widget_id}_no_wm"
+            %label(for=uniq_name)
+              = check_box_tag uniq_name, "1", file.no_wm, class: "neofiles-image-compact-nowm", data: {update_url: neofiles_file_update_path}
+              не ставить водяной знак
 
-    %a(href="#" tabindex="0" class="neofiles-image-compact-options" data-toggle="popover" data-trigger="click" data-placement="top" data-html="true" data-animation="false" data-title="#{file.filename}" data-content=options_form)
-      %i.icon-wrench.glyphicon.glyphicon-wrench
+      %a(href="#" tabindex="0" class="neofiles-image-compact-options" data-toggle="popover" data-trigger="click" data-placement="top" data-html="true" data-animation="false" data-title="#{file.filename}" data-content=options_form)
+        %i.icon-wrench.glyphicon.glyphicon-wrench
 
   %span.neofiles-image-compact-upload-icon
     %i.icon-upload.glyphicon.glyphicon-upload
@@ -52,7 +58,6 @@
   $(function() {
       $("##{widget_id}").image();
   });
-
 
 - if append_create and file
   = render partial: 'file_compact', locals: {file: nil, input_name: input_name, widget_id: widget_id + '_ap', clean_remove: clean_remove, append_create: true, error: nil, disabled: disabled, multiple: multiple}
