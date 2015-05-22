@@ -20,6 +20,11 @@
       - if file.owner_type.present? || file.owner_id.present?
         %p Владелец: #{file.owner_type}#{file.owner_id}
 
+      %p
+        - area_name = "#{widget_id}_description"
+        = text_area_tag area_name, file.description, class: "neofiles-image-compact-description", placeholder: 'Описание изображения...', data: {update_url: neofiles_file_update_path}
+
+
       - if file.respond_to? :no_wm
         %p.checkbox
           - uniq_name = "#{widget_id}_no_wm"
@@ -40,12 +45,14 @@
   = hidden_field_tag 'neofiles[clean_remove]', clean_remove ? 1 : 0, id: nil, disabled: disabled
   = hidden_field_tag 'neofiles[append_create]', file ? 0 : (append_create ? 1 : 0), id: nil, disabled: disabled
   = hidden_field_tag 'neofiles[multiple]', multiple ? 1 : 0, id: nil, disabled: disabled
+
   = file_field_tag "neofiles[file]#{'[]' if multiple && !file}", id: nil, class: 'neofiles-image-compact-file', disabled: disabled, multiple: multiple && !file
 
 :javascript
   $(function() {
       $("##{widget_id}").image();
   });
+
 
 - if append_create and file
   = render partial: 'file_compact', locals: {file: nil, input_name: input_name, widget_id: widget_id + '_ap', clean_remove: clean_remove, append_create: true, error: nil, disabled: disabled, multiple: multiple}

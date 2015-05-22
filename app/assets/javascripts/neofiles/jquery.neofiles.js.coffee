@@ -8,6 +8,7 @@ $ ->
     _$optionsButton: null,
 
     _savedNowmState: null,
+    _savedDescription: null,
 
     _create: ->
 
@@ -54,6 +55,9 @@ $ ->
 
       $form.on "change", ".neofiles-image-compact-nowm", (e)=>
         @saveNowmState($(e.target))
+
+      $form.on "change", ".neofiles-image-compact-description", (e)=>
+        @saveDescription($(e.target))
 
     imageId: ->
       @_$transferInput.val()
@@ -106,6 +110,23 @@ $ ->
         # ответ приходит быстро, бывает не успеваешь заметить моргание disabled/enabled
         setTimeout ->
           $checkbox.prop("disabled", false)
+        , 300
+
+
+    saveDescription: ($textarea)->
+      $textarea.prop("disabled", true)
+      formData = @element.find("input, select").serializeArray()
+      formData.push name: "neofiles[description]", value: $textarea.val()
+
+      $.ajax($textarea.data("update-url"), type: "post", data: formData)
+      .done =>
+        @_savedDescription = $textarea.is(":checked")
+      .fail ->
+        alert("Ошибка при сохранении, попробуйте еще раз позднее")
+      .always ->
+        # ответ приходит быстро, бывает не успеваешь заметить моргание disabled/enabled
+        setTimeout ->
+          $textarea.prop("disabled", false)
         , 300
 
 
