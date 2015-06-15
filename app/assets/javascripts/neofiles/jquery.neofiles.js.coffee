@@ -55,6 +55,10 @@ $ ->
       @_$descriptionHandle.popover().on "shown.bs.popover", =>
         @hideOtherActivePopovers()
         @restoreSavedDescription()
+        @element.find(".neofiles-image-compact-description-input").redactor
+          toolbarFixed: false
+          minHeight: 250
+          buttons: ['bold', 'italic', 'orderedlist', 'unorderedlist', 'alignment']
 
       @_$descriptionHandle.click (e)=>
         e.preventDefault()
@@ -65,8 +69,8 @@ $ ->
       $form.on "change", ".neofiles-image-compact-nowm", (e)=>
         @saveNowmState($(e.target))
 
-      $form.on "change", ".neofiles-image-compact-description-input", (e)=>
-        @saveDescription($(e.target))
+      $form.on "click", ".neofiles-image-compact-description-save", (e)=>
+        @saveDescription()
 
     imageId: ->
       @_$transferInput.val()
@@ -125,10 +129,15 @@ $ ->
           $checkbox.prop("disabled", false)
         , 300
 
-    saveDescription: ($textarea)->
+    saveDescription: ->
+      $textarea = @element.find(".neofiles-image-compact-description-input")
+      $button = @element.find(".neofiles-image-compact-description-save")
+
       $textarea.prop("disabled", true)
       formData = @element.find("input, select").serializeArray()
       formData.push name: "neofiles[description]", value: $textarea.val()
+
+      $button.prop("disabled", true)
 
       $.ajax($textarea.data("update-url"), type: "post", data: formData)
 
@@ -147,6 +156,7 @@ $ ->
         # ответ приходит быстро, бывает не успеваешь заметить моргание disabled/enabled
         setTimeout ->
           $textarea.prop("disabled", false)
+          $button.prop("disabled", false)
         , 300
 
 

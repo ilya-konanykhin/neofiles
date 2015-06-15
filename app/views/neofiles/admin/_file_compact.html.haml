@@ -44,7 +44,9 @@
 
     - description_form = capture do
       - area_name = "#{widget_id}_description"
-      = text_area_tag area_name, file.description, class: "neofiles-image-compact-description-input", data: {update_url: neofiles_file_update_path}
+      = text_area_tag area_name, file.description, class: "neofiles-image-compact-description-input", rows: 10, data: {update_url: neofiles_file_update_path}
+      .text-center
+        %button.btn.btn-primary.btn-small.neofiles-image-compact-description-save Сохранить
 
     - popover_template = capture do
       .popover.neofiles-image-compact-description-popover(role="tooltip")

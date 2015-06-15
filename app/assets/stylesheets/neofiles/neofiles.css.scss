@@ -14,7 +14,7 @@
   }
 }
 .neofiles-image-compact-with-description {
-  margin-bottom: 30px;
+  margin-bottom: 40px;
 }
 .neofiles-image-compact-empty {
   width: 108px;
@@ -99,7 +99,7 @@ INPUT.neofiles-image-compact-file {
 }
 .neofiles-image-compact-description {
   position: absolute;
-  bottom: -20px;
+  bottom: -25px;
   width: 100%;
   font-size: 12px;
   margin-left: -4px;
@@ -122,6 +122,10 @@ INPUT.neofiles-image-compact-file {
 .popover.neofiles-image-compact-description-popover {
   width: 430px;
   max-width: none;
+
+  .popover-content {
+    width: 100%;
+  }
 }
 .neofiles-image-compact-description-input {
   width: 400px;
