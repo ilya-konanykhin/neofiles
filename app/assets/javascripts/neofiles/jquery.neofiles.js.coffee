@@ -6,6 +6,7 @@ $ ->
     _$fileInput: null,
     _$removeButton: null,
     _$optionsButton: null,
+    _$descriptionHandle: null,
 
     _savedNowmState: null,
     _savedDescription: null,
@@ -18,6 +19,7 @@ $ ->
       @_$fileInput = $form.find(".neofiles-image-compact-file")
       @_$removeButton = $form.find(".neofiles-image-compact-remove")
       @_$optionsButton = $form.find(".neofiles-image-compact-options")
+      @_$descriptionHandle = $form.find(".neofiles-image-compact-description-handle")
 
       $form.fileupload
         dropZone: $form,
@@ -43,11 +45,18 @@ $ ->
         e.preventDefault()
         @remove()
 
-      @_$optionsButton.popover().on "shown", =>
+      @_$optionsButton.popover().on "shown.bs.popover", =>
         @hideOtherActivePopovers()
         @restoreSavedNowmState()
 
       @_$optionsButton.click (e)=>
+        e.preventDefault()
+
+      @_$descriptionHandle.popover().on "shown.bs.popover", =>
+        @hideOtherActivePopovers()
+        @restoreSavedDescription()
+
+      @_$descriptionHandle.click (e)=>
         e.preventDefault()
 
       $form.find(".neofiles-image-compact-upload-icon").click =>
@@ -56,7 +65,7 @@ $ ->
       $form.on "change", ".neofiles-image-compact-nowm", (e)=>
         @saveNowmState($(e.target))
 
-      $form.on "change", ".neofiles-image-compact-description", (e)=>
+      $form.on "change", ".neofiles-image-compact-description-input", (e)=>
         @saveDescription($(e.target))
 
     imageId: ->
@@ -95,6 +104,10 @@ $ ->
       if @_savedNowmState != null
         @element.find(".neofiles-image-compact-nowm").prop("checked", @_savedNowmState)
 
+    restoreSavedDescription: ->
+      if @_savedDescription != null
+        @element.find(".neofiles-image-compact-description-input").val(@_savedDescription)
+
     saveNowmState: ($checkbox)->
       $checkbox.prop("disabled", true)
       formData = @element.find("input, select").serializeArray()
@@ -112,17 +125,24 @@ $ ->
           $checkbox.prop("disabled", false)
         , 300
 
-
     saveDescription: ($textarea)->
       $textarea.prop("disabled", true)
       formData = @element.find("input, select").serializeArray()
       formData.push name: "neofiles[description]", value: $textarea.val()
 
       $.ajax($textarea.data("update-url"), type: "post", data: formData)
+
       .done =>
-        @_savedDescription = $textarea.is(":checked")
+        @_savedDescription = $textarea.val()
+
+        text = $.trim(@_savedDescription).substr(0, 15)
+        @_$descriptionHandle.text(text || @_$descriptionHandle.data("empty"))
+        @_$descriptionHandle[if text then "removeClass" else "addClass"]("neofiles-image-compact-description-empty")
+        @_$descriptionHandle.popover("hide")
+
       .fail ->
         alert("Ошибка при сохранении, попробуйте еще раз позднее")
+
       .always ->
         # ответ приходит быстро, бывает не успеваешь заметить моргание disabled/enabled
         setTimeout ->

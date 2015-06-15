@@ -1,5 +1,11 @@
 - widget_id ||= input_name.gsub(/\]\[|[^-a-zA-Z0-9:.]/, "_").sub(/_$/, "")
-%div(id=widget_id data-url=neofiles_file_save_path){class: "neofiles-image-compact" + (file ? '' : ' neofiles-image-compact-empty' )}
+- desc = file.try(:description).try(:to_s).try!(:strip).try!(:truncate, 15).presence
+- empty_desc = "Без описания"
+
+- classes = []
+- classes << 'neofiles-image-compact-empty' unless file
+- classes << 'neofiles-image-compact-with-description'
+.neofiles-image-compact(id=widget_id data-url=neofiles_file_save_path){class: classes}
 
   - if error.present?
     %p.neofiles-error
@@ -23,11 +29,6 @@
         - file_options << "#{number_to_human_size file.length, precision: 0}"
         %p= file_options.join(", ")
         
-        %p
-          - area_name = "#{widget_id}_description"
-          = text_area_tag area_name, file.description, class: "neofiles-image-compact-description", placeholder: 'Описание изображения...', data: {update_url: neofiles_file_update_path}
-
-
         - if file.owner_type.present? || file.owner_id.present?
           %p Владелец: #{file.owner_type}#{file.owner_id}
 
@@ -40,6 +41,19 @@
 
       %a(href="#" tabindex="0" class="neofiles-image-compact-options" data-toggle="popover" data-trigger="click" data-placement="top" data-html="true" data-animation="false" data-title="#{file.filename}" data-content=options_form)
         %i.icon-wrench.glyphicon.glyphicon-wrench
+
+    - description_form = capture do
+      - area_name = "#{widget_id}_description"
+      = text_area_tag area_name, file.description, class: "neofiles-image-compact-description-input", data: {update_url: neofiles_file_update_path}
+
+    - popover_template = capture do
+      .popover.neofiles-image-compact-description-popover(role="tooltip")
+        .arrow
+        %h3.popover-title
+        .popover-content
+
+    .neofiles-image-compact-description
+      %a.neofiles-image-compact-description-handle(href="#" data-empty=empty_desc data-toggle="popover" data-trigger="click" data-placement="top" data-html="true" data-animation="false" data-title="Описание" data-content=description_form data-template=popover_template){class: desc ? nil : 'neofiles-image-compact-description-empty'}= desc || empty_desc
 
   %span.neofiles-image-compact-upload-icon
     %i.icon-upload.glyphicon.glyphicon-upload

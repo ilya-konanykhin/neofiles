@@ -13,6 +13,9 @@
     width: 250px;
   }
 }
+.neofiles-image-compact-with-description {
+  margin-bottom: 30px;
+}
 .neofiles-image-compact-empty {
   width: 108px;
   height: 108px;
@@ -93,6 +96,36 @@ INPUT.neofiles-image-compact-file {
   .neofiles-image-compact-file {
     visibility: hidden;
   }
+}
+.neofiles-image-compact-description {
+  position: absolute;
+  bottom: -20px;
+  width: 100%;
+  font-size: 12px;
+  margin-left: -4px;
+  line-height: 14px;
+  text-align: center;
+}
+.neofiles-image-compact-description-empty {
+  color: #ccc;
+  border-bottom-color: #ddd;
+}
+.neofiles-image-compact-description-handle {
+  border-bottom: 1px dotted #333;
+  text-decoration: none !important;
+
+  &:hover {
+    border-bottom: 0;
+    text-decoration: none !important;
+  }
+}
+.popover.neofiles-image-compact-description-popover {
+  width: 430px;
+  max-width: none;
+}
+.neofiles-image-compact-description-input {
+  width: 400px;
+  height: 250px;
 }
 
 .neofiles-album-compact {
