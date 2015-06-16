@@ -12,7 +12,8 @@
       = error
 
   - if file
-    = file.admin_compact_view self
+    .neofiles-image-compact-view= file.admin_compact_view self
+
     %a(href=neofiles_file_remove_path class="neofiles-image-compact-remove")
       %i.icon-remove.glyphicon.glyphicon-remove
 
@@ -55,7 +56,7 @@
         .popover-content
 
     .neofiles-image-compact-description
-      %a.neofiles-image-compact-description-handle(href="#" data-empty=empty_desc data-toggle="popover" data-trigger="click" data-placement="top" data-html="true" data-animation="false" data-title="Описание" data-content=description_form data-template=popover_template){class: desc ? nil : 'neofiles-image-compact-description-empty'}= desc || empty_desc
+      %a.neofiles-image-compact-description-handle(href="#" data-empty=empty_desc data-toggle="popover" data-trigger="click" data-placement="bottom" data-html="true" data-animation="false" data-title="Описание" data-content=description_form data-template=popover_template){class: desc ? nil : 'neofiles-image-compact-description-empty'}= desc || empty_desc
 
   %span.neofiles-image-compact-upload-icon
     %i.icon-upload.glyphicon.glyphicon-upload

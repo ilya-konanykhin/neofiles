@@ -142,12 +142,13 @@ $ ->
       $.ajax($textarea.data("update-url"), type: "post", data: formData)
 
       .done =>
-        @_savedDescription = $textarea.val()
-
-        text = $.trim(@_savedDescription).substr(0, 15)
-        @_$descriptionHandle.text(text || @_$descriptionHandle.data("empty"))
-        @_$descriptionHandle[if text then "removeClass" else "addClass"]("neofiles-image-compact-description-empty")
-        @_$descriptionHandle.popover("hide")
+        setTimeout =>
+          @_savedDescription = $textarea.val()
+          text = $.trim(@_savedDescription).substr(0, 15)
+          @_$descriptionHandle.text(text || @_$descriptionHandle.data("empty"))
+          @_$descriptionHandle[if text then "removeClass" else "addClass"]("neofiles-image-compact-description-empty")
+          @_$descriptionHandle.popover("hide")
+        , 300
 
       .fail ->
         alert("Ошибка при сохранении, попробуйте еще раз позднее")
@@ -172,6 +173,7 @@ $ ->
       neofilesImageContainersSelector = ".neofiles-image-compact:not(.neofiles-image-compact-empty)"
       $form.sortable
         items: neofilesImageContainersSelector
+        handle: ".neofiles-image-compact-view"
 
       @limit = @options.limit
 

@@ -15,6 +15,8 @@
 }
 .neofiles-image-compact-with-description {
   margin-bottom: 40px;
+  min-width: 100px;
+  text-align: center;
 }
 .neofiles-image-compact-empty {
   width: 108px;
@@ -107,11 +109,12 @@ INPUT.neofiles-image-compact-file {
   text-align: center;
 }
 .neofiles-image-compact-description-empty {
-  color: #ccc;
-  border-bottom-color: #ddd;
+  color: #ccc !important;
+  border-bottom-color: #ddd !important;
 }
 .neofiles-image-compact-description-handle {
-  border-bottom: 1px dotted #333;
+  color: #333;
+  border-bottom: 1px dotted #777;
   text-decoration: none !important;
 
   &:hover {
@@ -121,6 +124,7 @@ INPUT.neofiles-image-compact-file {
 }
 .popover.neofiles-image-compact-description-popover {
   width: 430px;
+  height: 400px;
   max-width: none;
 
   .popover-content {
