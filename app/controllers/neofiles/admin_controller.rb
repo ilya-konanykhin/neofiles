@@ -3,6 +3,7 @@ class Neofiles::AdminController < ApplicationController
 
   skip_before_filter :verify_authenticity_token
 
+  # Просмотр файла в компактном виде (картинка + кнопки "удалить" и пр.)
   def file_compact(fake_request = nil)
     request = fake_request || self.request
 
@@ -20,6 +21,7 @@ class Neofiles::AdminController < ApplicationController
     @append_create  = request[:append_create].present? && request[:append_create] != '0'
     @disabled       = request[:disabled].present? && request[:disabled] != '0'
     @multiple       = request[:multiple].present? && request[:multiple] != '0'
+    @with_desc      = request[:with_desc].present? && request[:with_desc] != '0'
     @error        ||= ''
 
     if fake_request
@@ -29,6 +31,7 @@ class Neofiles::AdminController < ApplicationController
     end
   end
 
+  # Сохраняем файл.
   def file_save
     data = request[:neofiles]
     raise 'Не переданы данные для сохранения' unless data.is_a? Hash
@@ -74,6 +77,7 @@ class Neofiles::AdminController < ApplicationController
     render text: result.join, layout: false
   end
 
+  # Удаляем файл.
   def file_remove
     file, data = find_file_and_data
 
@@ -88,23 +92,22 @@ class Neofiles::AdminController < ApplicationController
     redirect_to neofiles_file_compact_path(data.merge(id: nil))
   end
 
+  # Обновляем поля файла ("не ставить водяной знак", "описание" и пр.)
   def file_update
     file, data = find_file_and_data
     file.update data.slice(:description, :no_wm)
-    render text: "", layout: false
+    render text: '', layout: false
   end
 
   # Обработка загрузки файла через redactor.js. Получает файл и мета-данные (owner_type, owner_id) и отдает JSON,
   # в котором путь до загруженного файла.
   def redactor_upload
     owner_type, owner_id, file = prepare_owner_type(request[:owner_type]), request[:owner_id], request[:file]
-    raise 'Не переданы данные для сохранения' if owner_type.blank? or owner_id.blank?
-    raise 'Не передан файл для сохранения' unless file.present? and file.respond_to? :read
+    raise 'Не переданы данные для сохранения' if owner_type.blank? || owner_id.blank?
+    raise 'Не передан файл для сохранения' unless file.present? && file.respond_to?(:read)
 
-    # выберем тип файла
     file_class = Neofiles::File.class_by_file_object(file)
 
-    # создадим новый файл
     file = file_class.new do |f|
       f.owner_type  = owner_type
       f.owner_id    = owner_id
@@ -114,13 +117,11 @@ class Neofiles::AdminController < ApplicationController
       f.file  = file
     end
 
-    # сохраним все
     Rails.application.config.neofiles.before_save.try!(:call, file)
     file.save!
 
     # вернем путь до загруженного файла
     render json: {filelink: neofiles_file_path(file), filename: file.filename}
-
   end
 
   # Список загруженных файлов в формате JSON для redactor.js.

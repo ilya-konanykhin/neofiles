@@ -142,4 +142,8 @@ INPUT.neofiles-image-compact-file {
 .neofiles-album-compact .neofiles-image-compact {
   margin-right: 20px;
   margin-bottom: 20px;
+
+  &.neofiles-image-compact-with-description {
+    margin-bottom: 50px;
+  }
 }

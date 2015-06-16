@@ -4,7 +4,7 @@
 
 - classes = []
 - classes << 'neofiles-image-compact-empty' unless file
-- classes << 'neofiles-image-compact-with-description'
+- classes << 'neofiles-image-compact-with-description' if file && with_desc
 .neofiles-image-compact(id=widget_id data-url=neofiles_file_save_path){class: classes}
 
   - if error.present?
@@ -43,31 +43,35 @@
       %a(href="#" tabindex="0" class="neofiles-image-compact-options" data-toggle="popover" data-trigger="click" data-placement="top" data-html="true" data-animation="false" data-title="#{file.filename}" data-content=options_form)
         %i.icon-wrench.glyphicon.glyphicon-wrench
 
-    - description_form = capture do
-      - area_name = "#{widget_id}_description"
-      = text_area_tag area_name, file.description, class: "neofiles-image-compact-description-input", rows: 10, data: {update_url: neofiles_file_update_path}
-      .text-center
-        %button.btn.btn-primary.btn-small.neofiles-image-compact-description-save Сохранить
+    - if with_desc
+      - description_form = capture do
+        - area_name = "#{widget_id}_description"
+        = text_area_tag area_name, file.description, class: "neofiles-image-compact-description-input", rows: 10, data: {update_url: neofiles_file_update_path}
+        .text-center
+          %button.btn.btn-primary.btn-small.neofiles-image-compact-description-save Сохранить
 
-    - popover_template = capture do
-      .popover.neofiles-image-compact-description-popover(role="tooltip")
-        .arrow
-        %h3.popover-title
-        .popover-content
+      - popover_template = capture do
+        .popover.neofiles-image-compact-description-popover(role="tooltip")
+          .arrow
+          %h3.popover-title
+          .popover-content
 
-    .neofiles-image-compact-description
-      %a.neofiles-image-compact-description-handle(href="#" data-empty=empty_desc data-toggle="popover" data-trigger="click" data-placement="bottom" data-html="true" data-animation="false" data-title="Описание" data-content=description_form data-template=popover_template){class: desc ? nil : 'neofiles-image-compact-description-empty'}= desc || empty_desc
+      .neofiles-image-compact-description
+        %a.neofiles-image-compact-description-handle(href="#" data-empty=empty_desc data-toggle="popover" data-trigger="click" data-placement="bottom" data-html="true" data-animation="false" data-title="Описание" data-content=description_form data-template=popover_template){class: desc ? nil : 'neofiles-image-compact-description-empty'}= desc || empty_desc
 
   %span.neofiles-image-compact-upload-icon
     %i.icon-upload.glyphicon.glyphicon-upload
 
-  = hidden_field_tag input_name, file.try(:id), id: nil, class: 'neofiles-image-transfer-input', disabled: disabled
-  = hidden_field_tag 'neofiles[id]', file.try(:id), id: nil, disabled: disabled
-  = hidden_field_tag 'neofiles[input_name]', input_name, id: nil, disabled: disabled
-  = hidden_field_tag 'neofiles[widget_id]', widget_id, id: nil, disabled: disabled
-  = hidden_field_tag 'neofiles[clean_remove]', clean_remove ? 1 : 0, id: nil, disabled: disabled
-  = hidden_field_tag 'neofiles[append_create]', file ? 0 : (append_create ? 1 : 0), id: nil, disabled: disabled
-  = hidden_field_tag 'neofiles[multiple]', multiple ? 1 : 0, id: nil, disabled: disabled
+  - common_options = {id: nil, disabled: disabled}
+  = hidden_field_tag input_name,                file.try(:id),  common_options.merge(class: 'neofiles-image-transfer-input')
+  = hidden_field_tag 'neofiles[id]',            file.try(:id),  common_options
+  = hidden_field_tag 'neofiles[input_name]',    input_name,     common_options
+  = hidden_field_tag 'neofiles[widget_id]',     widget_id,      common_options
+
+  = hidden_field_tag 'neofiles[clean_remove]',  clean_remove  ? 1 : 0,                        common_options
+  = hidden_field_tag 'neofiles[append_create]', file          ? 0 : (append_create ? 1 : 0),  common_options
+  = hidden_field_tag 'neofiles[multiple]',      multiple      ? 1 : 0,                        common_options
+  = hidden_field_tag 'neofiles[with_desc]',     with_desc     ? 1 : 0,                        common_options
 
   = file_field_tag "neofiles[file]#{'[]' if multiple && !file}", id: nil, class: 'neofiles-image-compact-file', disabled: disabled, multiple: multiple && !file
 
@@ -77,5 +81,5 @@
   });
 
 - if append_create and file
-  = render partial: 'file_compact', locals: {file: nil, input_name: input_name, widget_id: widget_id + '_ap', clean_remove: clean_remove, append_create: true, error: nil, disabled: disabled, multiple: multiple}
+  = render partial: 'file_compact', locals: {file: nil, input_name: input_name, widget_id: widget_id + '_ap', clean_remove: clean_remove, append_create: true, error: nil, disabled: disabled, multiple: multiple, with_desc: with_desc}
 
