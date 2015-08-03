@@ -67,5 +67,9 @@ module Neofiles
     params[:quality].to_i if params[:quality].present? and params[:quality] != '0'
   end
 
-  module_function :resized_image_dimensions, :crop_requested?, :quality_requested?, :quality_requested
+  def is_admin?(context)
+    Rails.application.config.neofiles.try(:current_admin).try(:call, context)
+  end
+
+  module_function :resized_image_dimensions, :crop_requested?, :quality_requested?, :quality_requested, :is_admin?
 end

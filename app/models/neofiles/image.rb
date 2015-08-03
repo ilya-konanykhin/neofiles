@@ -102,7 +102,8 @@ class Neofiles::Image < Neofiles::File
   # Картинка показывается в виде ссылки с необрезанной иконкой 100 на 100.
   def admin_compact_view(template)
     # _path а не _url, чтобы не потерять админскую сессионную куку при переходе на другой домен
-    template.neofiles_img_link self, 100, 100, {}, target: '_blank', href: template.neofiles_image_nowm_path(self)
+    url_method = Neofiles.is_admin?(template) ? :neofiles_image_nowm_path : :neofiles_image_path
+    template.neofiles_img_link self, 100, 100, {}, target: '_blank', href: template.send(url_method, self)
   end
 
   def no_wm=(value)
