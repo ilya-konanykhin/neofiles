@@ -6,7 +6,7 @@ class Neofiles::File
   include Mongoid::Document
   include Mongoid::Timestamps
 
-  store_in collection: "files.files", session: "neofiles"
+  store_in collection: "files.files", client: "neofiles"
 
   has_many :chunks, dependent: :destroy, order: [:n, :asc], class_name: 'Neofiles::FileChunk'
 

@@ -5,7 +5,7 @@ class Neofiles::FileChunk
 
   include Mongoid::Document
 
-  store_in collection: "files.chunks", session: "neofiles"
+  store_in collection: "files.chunks", client: "neofiles"
 
   belongs_to :file, class_name: 'Neofiles::File'
 
