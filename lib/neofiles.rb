@@ -38,11 +38,21 @@ module Neofiles
 
     # обрезка не нужна, значит, надо вычислить ширину и высоту, сами делать не будем, спросим МиниМеджик
     image_file = Neofiles::Image.find image_file if image_file.is_a?(String)
-    return nil if image_file.nil? or not(image_file.is_a? Neofiles::Image) or image_file.width.blank? or image_file.height.blank?
+    return nil if image_file.nil?
+
+    if image_file.is_a?(Neofiles::Image)
+      image_file_width = image_file.width
+      image_file_height = image_file.height
+    else
+      image_file_width = image_file[:width]
+      image_file_height = image_file[:height]
+    end
+
+    return if image_file_width.blank? || image_file_height.blank?
 
     # построим запрос к ИмейджМеджику
     command = MiniMagick::CommandBuilder.new(:convert)            # команда convert
-    command.size([image_file.width, image_file.height].join 'x')  # габариты входного файла
+    command.size([image_file_width, image_file_height].join 'x')  # габариты входного файла
     command.xc('white')                                           # входной файл число белый
     command.resize([width, height].join 'x')                      # изменить размер до нужного
     command.push('info:-')                                        # вывести (вернуть) инфу о файле

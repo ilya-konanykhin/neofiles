@@ -9,9 +9,9 @@ module Neofiles::NeofilesHelper
 
     unless image_file.blank?
       resize_options = resize_options.merge(format: [width.to_i, height.to_i].join("x")) if width.to_i > 0 && height.to_i > 0
-
+      image = image_file.is_a?(Hash) ? image_file[:id] : image_file
       html_attrs.symbolize_keys!
-      html_attrs[:src] = neofiles_image_url(image_file, resize_options)
+      html_attrs[:src] = neofiles_image_url(image, resize_options)
 
       dest_width, dest_height = dimensions_after_resize(image_file, width.to_i, height.to_i, resize_options)
       if dest_width and dest_height
@@ -123,7 +123,17 @@ HTML
     # TODO: перместить `::Neofiles::ServeController.resized_image_dimensions` в модель
     def dimensions_after_resize(image_file, width, height, resize_options)
       we_need_resizing = width > 0 && height > 0
-      if image_file.is_a?(::Neofiles::Image) and image_file.width > 0 and image_file.height > 0
+
+      if image_file.is_a?(Neofiles::Image)
+        image_file_width = image_file.width
+        image_file_height = image_file.height
+      elsif image_file.is_a?(Hash)
+        image_file_width = image_file[:width]
+        image_file_height = image_file[:height]
+      end
+
+
+      if (image_file_width.present? && image_file_height.present?) && (image_file_width > 0 && image_file_height > 0)
 
         if we_need_resizing
           ::Neofiles.resized_image_dimensions(image_file, width, height, resize_options)
