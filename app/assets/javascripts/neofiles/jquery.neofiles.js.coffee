@@ -25,6 +25,7 @@ $ ->
         dropZone: $form,
         pasteZone: $form,
         singleFileUploads: false,
+        limitMultiFileUploads: if @_$fileInput.attr("multiple") == "multiple" then 999 else 1,
 
         formData: ->
           $form.find("input, select").serializeArray()

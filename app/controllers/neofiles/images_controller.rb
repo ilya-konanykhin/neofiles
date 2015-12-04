@@ -1,4 +1,3 @@
-# encoding: UTF-8
 class Neofiles::ImagesController < ActionController::Metal
 
   class NotAdminException < Exception; end
@@ -112,26 +111,15 @@ class Neofiles::ImagesController < ActionController::Metal
 
   private
 
-    # поставить водяной знак, image — поток или MiniMagick::Image
-    def watermark_image(image, preferred_width = nil)
-      image = MiniMagick::Image.read image unless image.is_a? MiniMagick::Image
+  def nowm?(image_file)
+    image_file.no_wm? || (params[:nowm] == true && admin_or_die)
+  end
 
-      image.composite(MiniMagick::Image.open(Rails.root.join("app", "assets", "images", "neofiles-watermark.png"))) do |c|
-        c.gravity 'south'
-        preferred_width = [200, preferred_width].max if preferred_width > 0
-        c.geometry "#{preferred_width}x+0+20"
-      end.to_blob
+  def admin_or_die
+    if Neofiles.is_admin? self
+      true
+    else
+      raise NotAdminException
     end
-
-    def nowm?(image_file)
-      image_file.no_wm? || (params[:nowm] == true && admin_or_die)
-    end
-
-    def admin_or_die
-      if Neofiles.is_admin? self
-        true
-      else
-        raise NotAdminException
-      end
-    end
+  end
 end

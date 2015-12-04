@@ -1,4 +1,3 @@
-# encoding: UTF-8
 class Neofiles::AdminController < ApplicationController
 
   skip_before_filter :verify_authenticity_token
@@ -163,16 +162,19 @@ class Neofiles::AdminController < ApplicationController
     render json: []
   end
 
+
+
   protected
-    def find_file_and_data
-      data = request[:neofiles]
-      raise 'Не переданы данные для сохранения' if data.blank? || !(data.is_a? Hash)
-      raise 'Не передан ID файла для удаления' unless data[:id].present?
 
-      [Neofiles::File.find(data[:id]), data]
-    end
+  def find_file_and_data
+    data = request[:neofiles]
+    raise 'Не переданы данные для сохранения' if data.blank? || !(data.is_a? Hash)
+    raise 'Не передан ID файла для удаления' unless data[:id].present?
 
-    def prepare_owner_type(type)
-      type.to_s.gsub(':', '/')
-    end
+    [Neofiles::File.find(data[:id]), data]
+  end
+
+  def prepare_owner_type(type)
+    type.to_s.gsub(':', '/')
+  end
 end

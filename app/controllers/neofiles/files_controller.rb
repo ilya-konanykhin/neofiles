@@ -1,4 +1,3 @@
-# encoding: UTF-8
 class Neofiles::FilesController < ActionController::Metal
 
   include ActionController::DataStreaming
