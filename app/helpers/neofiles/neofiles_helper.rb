@@ -9,16 +9,12 @@ module Neofiles::NeofilesHelper
 
     unless image_file.blank?
       resize_options = resize_options.merge(format: [width.to_i, height.to_i].join("x")) if width.to_i > 0 && height.to_i > 0
+      size_attrs = resize_options.key?(:size_attrs) ? resize_options[:size_attrs] : true
 
       html_attrs.symbolize_keys!
       html_attrs[:src] = neofiles_image_url(image_file, resize_options)
 
-      dest_width, dest_height = dimensions_after_resize(image_file, width.to_i, height.to_i, resize_options)
-      if dest_width and dest_height
-        html_attrs[:style] ||= ''
-        html_attrs[:style] += '; ' if html_attrs[:style].present? and not (html_attrs[:style].ends_with? '; ' or html_attrs[:style].ends_with? ';')
-        html_attrs[:style] += 'width: %dpx; height: %dpx' % [dest_width, dest_height]
-      end
+      html_attrs[:width], html_attrs[:height] = dimensions_after_resize(image_file, width.to_i, height.to_i, resize_options) if size_attrs
     end
 
     tag :img, html_attrs
