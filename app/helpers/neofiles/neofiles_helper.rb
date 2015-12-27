@@ -7,6 +7,8 @@ module Neofiles::NeofilesHelper
   # html_attrs - HTML-атрибуты тэга.
   def neofiles_img_tag(image_file, width = nil, height = nil, resize_options = {}, html_attrs = {})
 
+    resize_options ||= {} # в gem_neo_adv мы передаем nil
+
     unless image_file.blank?
       resize_options = resize_options.merge(format: [width.to_i, height.to_i].join("x")) if width.to_i > 0 && height.to_i > 0
       size_attrs = resize_options.key?(:size_attrs) ? resize_options[:size_attrs] : true
