@@ -5,12 +5,6 @@ class Neofiles::Image < Neofiles::File
 
   field :no_wm, type: Mongoid::Boolean
 
-  # Если нужно перед сохранением обрезать картинку, нужно сюда записать в одном из форматов:
-  #   [w, h]
-  #   {width: w, height: h}
-  #   wh # если одно значение на обе стороны
-  attr_accessor :crop_before_save
-
   # Перед сохранением обработаем поворот картинки (если есть инфа) и запишем ширину и высоту.
   # Обязательно вызовем родительский save_file.
   #
@@ -39,22 +33,24 @@ class Neofiles::Image < Neofiles::File
 
     # повернем картинку, если она была сфотана "криво"
     dimensions = image[:dimensions]
-    case image['exif:orientation']
-      when '3'
-        image.rotate '180'
-      when '6'
-        image.rotate '90'
-        dimensions.reverse!
-      when '8'
-        image.rotate '-90'
-        dimensions.reverse!
+    if Rails.application.config.neofiles.image_rotate_exif
+      case image['exif:orientation']
+        when '3'
+          image.rotate '180'
+        when '6'
+          image.rotate '90'
+          dimensions.reverse!
+        when '8'
+          image.rotate '-90'
+          dimensions.reverse!
+      end
     end
 
-    # уберем все левые данные (нужно ли?)
-    image.strip
+    # уберем все левые данные
+    image.strip if Rails.application.config.neofiles.image_clean_exif
 
     # обрежем, если нужно
-    if crop_dimensions = crop_before_save
+    if crop_dimensions = Rails.application.config.neofiles.image_max_dimensions
       if crop_dimensions.is_a? Hash
         crop_dimensions = crop_dimensions.values_at :width, :height
       elsif !(crop_dimensions.is_a? Array)

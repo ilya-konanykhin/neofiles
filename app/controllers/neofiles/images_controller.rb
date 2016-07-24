@@ -11,8 +11,8 @@ class Neofiles::ImagesController < ActionController::Metal
     include Devise::Controllers::Helpers
   end
 
-  MAX_WIDTH = 2000
-  MAX_HEIGHT = 2000
+  CROP_MAX_WIDTH = Rails.application.config.neofiles.image_max_crop_width
+  CROP_MAX_HEIGHT = Rails.application.config.neofiles.image_max_crop_height
 
   # Получить картинку из базы. Доступные параметры:
   #
@@ -43,7 +43,7 @@ class Neofiles::ImagesController < ActionController::Metal
 
       width, height = params[:format].split('x').map(&:to_i)
       watermark_width, watermark_height = width, height
-      raise Mongoid::Errors::DocumentNotFound unless width.between?(1, MAX_WIDTH) and height.between?(1, MAX_HEIGHT)
+      raise Mongoid::Errors::DocumentNotFound unless width.between?(1, CROP_MAX_WIDTH) and height.between?(1, CROP_MAX_HEIGHT)
 
       quality = [[Neofiles::quality_requested(params), 100].min, 1].max if Neofiles::quality_requested?(params)
       setting_quality = quality && options[:type] == 'image/jpeg'

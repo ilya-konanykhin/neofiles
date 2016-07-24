@@ -3,11 +3,11 @@ class Neofiles::File
   include Mongoid::Document
   include Mongoid::Timestamps
 
-  store_in collection: "files.files", client: "neofiles"
+  store_in collection: Rails.application.config.neofiles.mongo_files_collection, client: Rails.application.config.neofiles.mongo_client
 
   has_many :chunks, dependent: :destroy, order: [:n, :asc], class_name: 'Neofiles::FileChunk'
 
-  DEFAULT_CHUNK_SIZE = 4.megabytes
+  DEFAULT_CHUNK_SIZE = Rails.application.config.neofiles.mongo_default_chunk_size
 
   field :filename, type: String
   field :content_type, type: String

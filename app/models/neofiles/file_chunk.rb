@@ -2,7 +2,7 @@ class Neofiles::FileChunk
 
   include Mongoid::Document
 
-  store_in collection: "files.chunks", client: "neofiles"
+  store_in collection: Rails.application.config.neofiles.mongo_chunks_collection, client: Rails.application.config.neofiles.mongo_client
 
   belongs_to :file, class_name: 'Neofiles::File'
 
