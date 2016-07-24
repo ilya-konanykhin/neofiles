@@ -1,5 +1,4 @@
-# encoding: UTF-8
-require "neofiles/engine"
+require 'neofiles/engine'
 
 module Neofiles
   # maybe config

@@ -1,4 +1,3 @@
-# encoding: UTF-8
 require_dependency 'image_spec'
 
 class Neofiles::Swf < Neofiles::File

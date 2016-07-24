@@ -1,7 +1,4 @@
-# encoding: UTF-8
 class Neofiles::FileChunk
-
-  BSON = defined?(Moped::BSON) ? Moped::BSON : ::BSON
 
   include Mongoid::Document
 

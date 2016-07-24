@@ -20,7 +20,7 @@ class Neofiles::ImagesController < ActionController::Metal
   #     crop: 1/0         - если 1, то обрезать лишнее, а не вписывать в указанный прямоугольник
   #     quality: [1-100]  - качество картинки на выходе, с принудительным преобразованием в JPEG
   #
-  # Водяной знак добавляется автоматом из картинки /assets/images/neofiles-watermark.png, если размер получающейся
+  # Водяной знак добавляется автоматом из картинки /assets/images/neofiles/watermark.png, если размер получающейся
   # картинки больше некоего предела (даже если обрезки нет).
   #
   # Если передан параметр nowm, и человек админ, то не ставим водяной знак.
@@ -58,7 +58,7 @@ class Neofiles::ImagesController < ActionController::Metal
         # 4) установим качество, если надо
         image.combine_options do |c|
           c.resize "#{width}x#{height}^"
-          c.gravity "center"
+          c.gravity 'center'
           c.extent "#{width}x#{height}"
           c.quality "#{quality}" if setting_quality
         end
@@ -102,7 +102,7 @@ class Neofiles::ImagesController < ActionController::Metal
     self.response_body = data
 
   rescue NotAdminException
-    self.response_body = "Ошибка 403: недостаточно прав для получения файла в таком формате"
+    self.response_body = 'Ошибка 403: недостаточно прав для получения файла в таком формате'
     self.content_type = 'text/plain; charset=utf-8'
     self.status = 403
   end

@@ -90,7 +90,7 @@ INPUT.neofiles-image-compact-file {
 }
 .neofiles-image-compact-loading {
   opacity: .5;
-  background: image-path("loading.gif") no-repeat center center;
+  background: image-path('neofiles/loading.gif') no-repeat center center;
 
   .neofiles-image-compact-upload-icon,
   .neofiles-image-compact-remove,

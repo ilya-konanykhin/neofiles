@@ -1,4 +1,3 @@
-# encoding: UTF-8
 class Neofiles::Image < Neofiles::File
 
   field :width, type: Integer
