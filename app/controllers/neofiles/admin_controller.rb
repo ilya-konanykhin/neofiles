@@ -33,7 +33,7 @@ class Neofiles::AdminController < ApplicationController
   # Сохраняем файл.
   def file_save
     data = request[:neofiles]
-    raise 'Не переданы данные для сохранения' unless data.is_a? Hash
+    raise ArgumentError.new 'Не переданы данные для сохранения' unless data.is_a? Hash
 
     files = data[:file]
     files = [files] unless files.is_a? Array
@@ -70,7 +70,7 @@ class Neofiles::AdminController < ApplicationController
     end
 
     if result.empty?
-      raise last_exception || (errors.empty? ? 'Не передан файл для сохранения' : errors.join("\n"))
+      raise ArgumentError.new(last_exception || (errors.empty? ? 'Не передан файл для сохранения' : errors.join("\n")))
     end
 
     render text: result.join, layout: false
@@ -102,8 +102,8 @@ class Neofiles::AdminController < ApplicationController
   # в котором путь до загруженного файла.
   def redactor_upload
     owner_type, owner_id, file = prepare_owner_type(request[:owner_type]), request[:owner_id], request[:file]
-    raise 'Не переданы данные для сохранения' if owner_type.blank? || owner_id.blank?
-    raise 'Не передан файл для сохранения' unless file.present? && file.respond_to?(:read)
+    raise ArgumentError.new 'Не переданы данные для сохранения' if owner_type.blank? || owner_id.blank?
+    raise ArgumentError.new 'Не передан файл для сохранения' unless file.present? && file.respond_to?(:read)
 
     file_class = Neofiles::File.class_by_file_object(file)
 
@@ -134,7 +134,7 @@ class Neofiles::AdminController < ApplicationController
     begin
       file_class = "Neofiles::#{type.classify}".constantize
     rescue
-      raise "Не могу создать файл неизвестного типа #{type}"
+      raise ArgumentError.new "Не могу создать файл неизвестного типа #{type}"
     end
 
     result = []
@@ -164,12 +164,12 @@ class Neofiles::AdminController < ApplicationController
 
 
 
-  protected
+  private
 
   def find_file_and_data
     data = request[:neofiles]
-    raise 'Не переданы данные для сохранения' if data.blank? || !(data.is_a? Hash)
-    raise 'Не передан ID файла для удаления' unless data[:id].present?
+    raise ArgumentError.new 'Не переданы данные для сохранения' if data.blank? || !(data.is_a? Hash)
+    raise ArgumentError.new 'Не передан ID файла для удаления' unless data[:id].present?
 
     [Neofiles::File.find(data[:id]), data]
   end

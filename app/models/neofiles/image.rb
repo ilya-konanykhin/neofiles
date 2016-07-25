@@ -1,5 +1,7 @@
 class Neofiles::Image < Neofiles::File
 
+  class ImageFormatException < Exception; end
+
   field :width, type: Integer
   field :height, type: Integer
 
@@ -24,12 +26,12 @@ class Neofiles::Image < Neofiles::File
     begin
       image = ::MiniMagick::Image.read @file
     rescue ::MiniMagick::Invalid
-      raise 'The supplied image is invalid, cannot process it'
+      raise ImageFormatException.new 'The supplied image is invalid, cannot process it'
     end
 
     # какой тип у картинки, мы вообще такие берем?
     type = image[:format].downcase
-    raise "Unsupported image format #{type.upcase}" unless type.in? %w{ jpeg gif png }
+    raise ImageFormatException.new "Unsupported image format #{type.upcase}" unless type.in? %w{ jpeg gif png }
 
     # повернем картинку, если она была сфотана "криво"
     dimensions = image[:dimensions]
