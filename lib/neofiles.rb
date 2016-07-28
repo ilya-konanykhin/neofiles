@@ -39,7 +39,7 @@ module Neofiles
     image_file = Neofiles::Image.find image_file if image_file.is_a?(String)
     return nil if image_file.nil?
 
-    if image_file.is_a?(Neofiles::Image)
+    if image_file.is_a? Neofiles::Image
       image_file_width = image_file.width
       image_file_height = image_file.height
     else
