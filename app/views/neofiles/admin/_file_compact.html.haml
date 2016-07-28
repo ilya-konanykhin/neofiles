@@ -1,6 +1,6 @@
-- widget_id ||= input_name.gsub(/\]\[|[^-a-zA-Z0-9:.]/, "_").sub(/_$/, "")
+- widget_id ||= input_name.gsub(/\]\[|[^-a-zA-Z0-9:.]/, '_').sub(/_$/, '')
 - desc = file.try(:description).try(:to_s).try!(:strip).try!(:truncate, 15).presence
-- empty_desc = "Без описания"
+- empty_desc = t 'neofiles.views.no_description'
 
 - classes = []
 - classes << 'neofiles-image-compact-empty' unless file
@@ -22,23 +22,23 @@
         - if file.description.present?
           %p= file.description
 
-        %p Создан #{l file.created_at, format: "%d.%m.%Y <span class=\"muted text-muted\">в %H:%M</span>"}
+        %p= t 'neofiles.views.created_at', local_date: l(file.created_at, format: t('neofiles.views.local_date_format'))
 
         - file_options = []
         - if file.respond_to? :dimensions
           - file_options << "#{file.dimensions.join('×').html_safe} px"
         - file_options << "#{number_to_human_size file.length, precision: 0}"
-        %p= file_options.join(", ")
+        %p= file_options.join(', ')
         
         - if file.owner_type.present? || file.owner_id.present?
-          %p Владелец: #{file.owner_type}#{file.owner_id}
+          %p #{t 'neofiles.views.owner'}: #{file.owner_type}#{file.owner_id}
 
         - if file.respond_to? :no_wm
           %p.checkbox
             - uniq_name = "#{widget_id}_no_wm"
             %label(for=uniq_name)
-              = check_box_tag uniq_name, "1", file.no_wm, class: "neofiles-image-compact-nowm", data: {update_url: neofiles_file_update_path}
-              не ставить водяной знак
+              = check_box_tag uniq_name, '1', file.no_wm, class: 'neofiles-image-compact-nowm', data: {update_url: neofiles_file_update_path}
+              = t 'neofiles.views.no_wm'
 
       %a(href="#" tabindex="0" class="neofiles-image-compact-options" data-toggle="popover" data-trigger="click" data-placement="top" data-html="true" data-animation="false" data-title="#{file.filename}" data-content=options_form)
         %i.icon-wrench.glyphicon.glyphicon-wrench
@@ -46,9 +46,9 @@
     - if with_desc
       - description_form = capture do
         - area_name = "#{widget_id}_description"
-        = text_area_tag area_name, file.description, class: "neofiles-image-compact-description-input", rows: 10, data: {update_url: neofiles_file_update_path}
+        = text_area_tag area_name, file.description, class: 'neofiles-image-compact-description-input', rows: 10, data: {update_url: neofiles_file_update_path}
         .text-center
-          %button.btn.btn-primary.btn-small.neofiles-image-compact-description-save Сохранить
+          %button.btn.btn-primary.btn-small.neofiles-image-compact-description-save= t 'neofiles.views.save'
 
       - popover_template = capture do
         .popover.neofiles-image-compact-description-popover(role="tooltip")
@@ -57,7 +57,7 @@
           .popover-content
 
       .neofiles-image-compact-description
-        %a.neofiles-image-compact-description-handle(href="#" data-empty=empty_desc data-toggle="popover" data-trigger="click" data-placement="bottom" data-html="true" data-animation="false" data-title="Описание" data-content=description_form data-template=popover_template){class: desc ? nil : 'neofiles-image-compact-description-empty'}= desc || empty_desc
+        %a.neofiles-image-compact-description-handle(href="#" data-empty=empty_desc data-toggle="popover" data-trigger="click" data-placement="bottom" data-html="true" data-animation="false" data-title="#{t 'neofiles.views.description'}" data-content=description_form data-template=popover_template){class: ('neofiles-image-compact-description-empty' unless desc)}= desc || empty_desc
 
   %span.neofiles-image-compact-upload-icon
     %i.icon-upload.glyphicon.glyphicon-upload
@@ -73,7 +73,7 @@
   = hidden_field_tag 'neofiles[multiple]',      multiple      ? 1 : 0,                        common_options
   = hidden_field_tag 'neofiles[with_desc]',     with_desc     ? 1 : 0,                        common_options
 
-  = file_field_tag "neofiles[file][]", id: nil, class: 'neofiles-image-compact-file', disabled: disabled, multiple: multiple && !file
+  = file_field_tag 'neofiles[file][]', id: nil, class: 'neofiles-image-compact-file', disabled: disabled, multiple: multiple && !file
 
 :javascript
   $(function() {

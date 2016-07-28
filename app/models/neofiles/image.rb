@@ -26,12 +26,12 @@ class Neofiles::Image < Neofiles::File
     begin
       image = ::MiniMagick::Image.read @file
     rescue ::MiniMagick::Invalid
-      raise ImageFormatException.new 'The supplied image is invalid, cannot process it'
+      raise ImageFormatException.new I18n.t('neofiles.mini_magick_error')
     end
 
     # какой тип у картинки, мы вообще такие берем?
     type = image[:format].downcase
-    raise ImageFormatException.new "Unsupported image format #{type.upcase}" unless type.in? %w{ jpeg gif png }
+    raise ImageFormatException.new I18n.t('neofiles.unsupported_image_type', type: type.upcase) unless type.in? %w{ jpeg gif png }
 
     # повернем картинку, если она была сфотана "криво"
     dimensions = image[:dimensions]
@@ -104,7 +104,6 @@ class Neofiles::Image < Neofiles::File
   end
 
   def no_wm=(value)
-    write_attribute :no_wm, value.is_a?(String) ? value == "1" : value
+    write_attribute :no_wm, value.is_a?(String) ? value == '1' : value
   end
-
 end

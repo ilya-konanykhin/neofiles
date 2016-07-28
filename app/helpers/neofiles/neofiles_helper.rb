@@ -108,31 +108,33 @@ HTML
     neofiles_cdn_prefix(*args) + neofiles_image_path(*args)
   end
 
+
+
   private
 
-    # Правила ресайза:
-    #
-    #   — если не обрезаем (resize_options[:crop] == 1) но масштабируем, то вычислим размер (сторонний метод).
-    #   — если обрезаем, то размер равен запрошенному
-    #   — если не обрезаем и не машстабируем, если передан файл, а не ID, размер равен исходному
-    #
-    # Иначе вернет nil.
-    #
-    # TODO: перместить `::Neofiles::ServeController.resized_image_dimensions` в модель
-    def dimensions_after_resize(image_file, width, height, resize_options)
-      we_need_resizing = width > 0 && height > 0
-      if image_file.is_a?(::Neofiles::Image) and image_file.width > 0 and image_file.height > 0
+  # Правила ресайза:
+  #
+  #   — если не обрезаем (resize_options[:crop] == 1) но масштабируем, то вычислим размер (сторонний метод).
+  #   — если обрезаем, то размер равен запрошенному
+  #   — если не обрезаем и не машстабируем, если передан файл, а не ID, размер равен исходному
+  #
+  # Иначе вернет nil.
+  #
+  # TODO: перместить `::Neofiles::ServeController.resized_image_dimensions` в модель
+  def dimensions_after_resize(image_file, width, height, resize_options)
+    we_need_resizing = width > 0 && height > 0
+    if image_file.is_a?(::Neofiles::Image) and image_file.width > 0 and image_file.height > 0
 
-        if we_need_resizing
-          ::Neofiles.resized_image_dimensions(image_file, width, height, resize_options)
-        else
-          [image_file.width, image_file.height]
-        end
-
-      elsif we_need_resizing and resize_options[:crop].present? and resize_options[:crop].to_s != '0'
-        [width, height]
+      if we_need_resizing
+        ::Neofiles.resized_image_dimensions(image_file, width, height, resize_options)
       else
-        [nil, nil]
+        [image_file.width, image_file.height]
       end
+
+    elsif we_need_resizing and resize_options[:crop].present? and resize_options[:crop].to_s != '0'
+      [width, height]
+    else
+      [nil, nil]
     end
+  end
 end

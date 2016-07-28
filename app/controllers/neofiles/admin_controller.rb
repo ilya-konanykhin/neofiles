@@ -12,7 +12,7 @@ class Neofiles::AdminController < ApplicationController
       @file = nil
     end
 
-    @error = 'Файл не найден' if request[:id].present? and @file.blank?
+    @error = I18n.t('neofiles.file_not_found') if request[:id].present? and @file.blank?
 
     @input_name     = request[:input_name].to_s
     @widget_id      = request[:widget_id].presence
@@ -33,7 +33,7 @@ class Neofiles::AdminController < ApplicationController
   # Сохраняем файл.
   def file_save
     data = request[:neofiles]
-    raise ArgumentError.new 'Не переданы данные для сохранения' unless data.is_a? Hash
+    raise ArgumentError.new I18n.t('neofiles.data_not_passed') unless data.is_a? Hash
 
     files = data[:file]
     files = [files] unless files.is_a? Array
@@ -43,7 +43,7 @@ class Neofiles::AdminController < ApplicationController
     errors = []
     last_exception = nil
     files.each_with_index do |uploaded_file, i|
-      errors.push("Не передан файл для сохранения (#{i + 1})") and next unless uploaded_file.respond_to? :read
+      errors.push("#{I18n.t('neofiles.file_not_passed')} (#{i + 1})") and next unless uploaded_file.respond_to? :read
 
       # создадим новый файл, если описание не передано, возьмем от старого, если есть
       file_class = Neofiles::File.class_by_file_object(uploaded_file)
@@ -70,7 +70,7 @@ class Neofiles::AdminController < ApplicationController
     end
 
     if result.empty?
-      raise ArgumentError.new(last_exception || (errors.empty? ? 'Не передан файл для сохранения' : errors.join("\n")))
+      raise ArgumentError.new(last_exception || (errors.empty? ? I18n.t('neofiles.file_not_passed') : errors.join("\n")))
     end
 
     render text: result.join, layout: false
@@ -102,8 +102,8 @@ class Neofiles::AdminController < ApplicationController
   # в котором путь до загруженного файла.
   def redactor_upload
     owner_type, owner_id, file = prepare_owner_type(request[:owner_type]), request[:owner_id], request[:file]
-    raise ArgumentError.new 'Не переданы данные для сохранения' if owner_type.blank? || owner_id.blank?
-    raise ArgumentError.new 'Не передан файл для сохранения' unless file.present? && file.respond_to?(:read)
+    raise ArgumentError.new I18n.t('neofiles.data_not_passed') if owner_type.blank? || owner_id.blank?
+    raise ArgumentError.new I18n.t('neofiles.file_not_passed') unless file.present? && file.respond_to?(:read)
 
     file_class = Neofiles::File.class_by_file_object(file)
 
@@ -134,7 +134,7 @@ class Neofiles::AdminController < ApplicationController
     begin
       file_class = "Neofiles::#{type.classify}".constantize
     rescue
-      raise ArgumentError.new "Не могу создать файл неизвестного типа #{type}"
+      raise ArgumentError.new I18n.t('neofiles.unknown_file_type', type: type)
     end
 
     result = []
@@ -168,8 +168,8 @@ class Neofiles::AdminController < ApplicationController
 
   def find_file_and_data
     data = request[:neofiles]
-    raise ArgumentError.new 'Не переданы данные для сохранения' if data.blank? || !(data.is_a? Hash)
-    raise ArgumentError.new 'Не передан ID файла для удаления' unless data[:id].present?
+    raise ArgumentError.new I18n.t('neofiles.data_not_passed') if data.blank? || !(data.is_a? Hash)
+    raise ArgumentError.new I18n.t('neofiles.id_not_passed') unless data[:id].present?
 
     [Neofiles::File.find(data[:id]), data]
   end

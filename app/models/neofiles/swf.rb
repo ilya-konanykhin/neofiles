@@ -33,7 +33,7 @@ class Neofiles::Swf < Neofiles::File
 
     spec = ::ImageSpec.new(@file)
     if spec.content_type != 'application/x-shockwave-flash'
-      raise SwfFormatException.new "File pretends to be SWF, but it is not, determined content type is #{spec.content_type}"
+      raise SwfFormatException.new I18n.t('neofiles.swf_type_incorrect', content_type: spec.content_type)
     end
     self.width = spec.width
     self.height = spec.height

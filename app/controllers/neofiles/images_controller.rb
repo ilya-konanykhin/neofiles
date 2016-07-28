@@ -102,7 +102,7 @@ class Neofiles::ImagesController < ActionController::Metal
     self.response_body = data
 
   rescue NotAdminException
-    self.response_body = 'Ошибка 403: недостаточно прав для получения файла в таком формате'
+    self.response_body = I18n.t 'neofiles.403_access_denied'
     self.content_type = 'text/plain; charset=utf-8'
     self.status = 403
   end
