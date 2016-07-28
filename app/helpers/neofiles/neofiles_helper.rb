@@ -10,11 +10,12 @@ module Neofiles::NeofilesHelper
     resize_options ||= {} # в gem_neo_adv мы передаем nil
 
     unless image_file.blank?
-      resize_options = resize_options.merge(format: [width.to_i, height.to_i].join("x")) if width.to_i > 0 && height.to_i > 0
-      size_attrs = resize_options.key?(:size_attrs) ? resize_options[:size_attrs] : true
+      resize_options  = resize_options.merge(format: [width.to_i, height.to_i].join("x")) if width.to_i > 0 && height.to_i > 0
+      size_attrs      = resize_options.key?(:size_attrs) ? resize_options[:size_attrs] : true
+      image_or_id     = image_file.is_a?(Hash) ? image_file[:id] : image_file
 
       html_attrs.symbolize_keys!
-      html_attrs[:src] = neofiles_image_url(image_file, resize_options)
+      html_attrs[:src] = neofiles_image_url(image_or_id, resize_options)
 
       html_attrs[:width], html_attrs[:height] = dimensions_after_resize(image_file, width.to_i, height.to_i, resize_options) if size_attrs
     end
@@ -83,9 +84,9 @@ HTML
         gen_time = some_file.id.generation_time.sec
       elsif some_file.is_a?  Hash
         tmp = some_file[:id] || some_file['id'] || some_file[:_id] || some_file['_id'] || ""
-        gen_time = BSON::ObjectId.legal?(tmp) ? BSON::ObjectId.from_string(tmp).generation_time.sec : Time.now.strftime('%U').to_i
+        gen_time = Neofiles::File::BSON::ObjectId.legal?(tmp) ? Neofiles::File::BSON::ObjectId.from_string(tmp).generation_time.sec : Time.now.strftime('%U').to_i
       elsif some_file.is_a? String
-        gen_time = BSON::ObjectId.legal?(some_file) ? BSON::ObjectId.from_string(some_file).generation_time.sec : Time.now.strftime('%U').to_i
+        gen_time = Neofiles::File::BSON::ObjectId.legal?(some_file) ? Neofiles::File::BSON::ObjectId.from_string(some_file).generation_time.sec : Time.now.strftime('%U').to_i
       else
         gen_time = Time.now.strftime('%U').to_i
       end
@@ -123,14 +124,21 @@ HTML
   # TODO: перместить `::Neofiles::ServeController.resized_image_dimensions` в модель
   def dimensions_after_resize(image_file, width, height, resize_options)
     we_need_resizing = width > 0 && height > 0
-    if image_file.is_a?(::Neofiles::Image) and image_file.width > 0 and image_file.height > 0
 
+    if image_file.is_a?(Neofiles::Image)
+      image_file_width = image_file.width
+      image_file_height = image_file.height
+    else
+      image_file_width = image_file[:width]
+      image_file_height = image_file[:height]
+    end
+
+    if (image_file_width.present? && image_file_height.present?) && (image_file_width > 0 && image_file_height > 0)
       if we_need_resizing
         ::Neofiles.resized_image_dimensions(image_file, width, height, resize_options)
       else
-        [image_file.width, image_file.height]
+        [image_file_width, image_file_height]
       end
-
     elsif we_need_resizing and resize_options[:crop].present? and resize_options[:crop].to_s != '0'
       [width, height]
     else
