@@ -120,8 +120,6 @@ HTML
   #   — если не обрезаем и не машстабируем, если передан файл, а не ID, размер равен исходному
   #
   # Иначе вернет nil.
-  #
-  # TODO: перместить `::Neofiles::ServeController.resized_image_dimensions` в модель
   def dimensions_after_resize(image_file, width, height, resize_options)
     we_need_resizing = width > 0 && height > 0
 
