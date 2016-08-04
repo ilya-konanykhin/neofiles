@@ -1,3 +1,5 @@
+# Special controller for serving images from the database via single action #show.
+#
 class Neofiles::ImagesController < ActionController::Metal
 
   class NotAdminException < Exception; end
@@ -6,30 +8,29 @@ class Neofiles::ImagesController < ActionController::Metal
   include ActionController::RackDelegation
   include Neofiles::NotFound
 
-  if defined?(Devise)
-    include ActionController::Helpers
-    include Devise::Controllers::Helpers
-  end
-
   CROP_MAX_WIDTH = Rails.application.config.neofiles.image_max_crop_width
   CROP_MAX_HEIGHT = Rails.application.config.neofiles.image_max_crop_height
 
-  # Получить картинку из базы. Доступные параметры:
+  # Request parameters:
   #
-  #   format: '100x200'   — вернуть не больше этого размера, подпараметры:
-  #     crop: 1/0         - если 1, то обрезать лишнее, а не вписывать в указанный прямоугольник
-  #     quality: [1-100]  - качество картинки на выходе, с принудительным преобразованием в JPEG
+  #   format  - resize image to no more than that size, example: '100x200'
+  #   crop    - if '1' and params[:format] is present, then cut image sides if its aspect ratio differs from
+  #             params[:format] (otherwise image aspect ration will be preserved)
+  #   quality - output JPEG quality, integer from 1 till 100 (forces JPEG output, otherwise image type is preserved)
+  #   nowm    - force returned image to not contain watermark - user must be admin or 403 Forbidden response is returned
+  #             @see #admin_or_die
   #
-  # Водяной знак добавляется автоматом из картинки /assets/images/neofiles/watermark.png, если размер получающейся
-  # картинки больше некоего предела (даже если обрезки нет).
+  # Maximum allowed format dimensions are set via Rails.application.config.neofiles.image_max_crop_width/height.
   #
-  # Если передан параметр nowm, и человек админ, то не ставим водяной знак.
+  # Watermark is added automatically from /assets/images/neofiles/watermark.png or via proc
+  # Rails.application.config.neofiles.watermarker if present.
+  #
   def show
 
-    # получим, проверим
+    # get image
     image_file = Neofiles::Image.find params[:id]
 
-    # данные для отсылки
+    # prepare headers
     data = image_file.data
     options = {
       filename: CGI::escape(image_file.filename),
@@ -37,7 +38,7 @@ class Neofiles::ImagesController < ActionController::Metal
       disposition: 'inline',
     }
 
-    # нужно ли форматировать?
+    # is resizing needed?
     watermark_image, watermark_width, watermark_height = data, image_file.width, image_file.height
     if params[:format].present?
 
@@ -51,11 +52,11 @@ class Neofiles::ImagesController < ActionController::Metal
       image = MiniMagick::Image.read(data)
 
       if Neofiles.crop_requested? params
-        # запрошена обрезка:
-        # 1) уменьшим минимум до WxH (результат может быть больше по одной из сторон)
-        # 2) привяжемся к центру
-        # 3) отрежем все, что выступает
-        # 4) установим качество, если надо
+        # construct ImageMagick call:
+        # 1) resize to WxH, allow the result to be bigger on one side
+        # 2) allign resized to center
+        # 3) cut the extending parts
+        # 4) set quality if requested
         image.combine_options do |c|
           c.resize "#{width}x#{height}^"
           c.gravity 'center'
@@ -63,7 +64,7 @@ class Neofiles::ImagesController < ActionController::Metal
           c.quality "#{quality}" if setting_quality
         end
       else
-        # обрезка не нужна, впишем в формат WxH с сохранением пропорций (результат может отличаться по одной стороне)
+        # no cropping so just resize to fit in WxH, one side can be smaller than requested
         if image_file.width > width || image_file.height > height
           image.combine_options do |c|
             c.resize "#{width}x#{height}"
@@ -75,12 +76,13 @@ class Neofiles::ImagesController < ActionController::Metal
         end
       end
 
-      # если запросили качество, но мы его не ставили — значит, формат картинки не подходит, и надо пересохранить в JPEG
+      # quality requested, but we didn't have a chance to set it before -> forcibly resave as JPEG
       if quality && !setting_quality
         image.format 'jpeg'
         image.quality quality.to_s
       end
 
+      # get image bytes and stuff
       data = image.to_blob
       watermark_image = image
       options[:type] = image.mime_type
@@ -88,7 +90,7 @@ class Neofiles::ImagesController < ActionController::Metal
 
     watermark_image = MiniMagick::Image.read watermark_image unless watermark_image.is_a? MiniMagick::Image
 
-    # добавим водяной знак, если нужно
+    # set watermark
     data = Rails.application.config.neofiles.watermarker.(
       watermark_image,
       no_watermark: nowm?(image_file),
@@ -96,6 +98,7 @@ class Neofiles::ImagesController < ActionController::Metal
       watermark_height: watermark_height
     )
 
+    # stream image headers & bytes
     send_file_headers! options
     headers['Content-Length'] = data.length.to_s
     self.status = 200
@@ -111,10 +114,12 @@ class Neofiles::ImagesController < ActionController::Metal
 
   private
 
+  # Are we serving without watermark? If yes and user is not admin raise special exception.
   def nowm?(image_file)
     image_file.no_wm? || (params[:nowm] == true && admin_or_die)
   end
 
+  # Assert the user logged in is admin. @see Neofiles.is_admin?
   def admin_or_die
     if Neofiles.is_admin? self
       true

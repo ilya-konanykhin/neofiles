@@ -1,3 +1,45 @@
+# This model stores file metadata like name, size, md5 hash etc. A model ID is essentially what is a "file" in the
+# rest of an application. In some way Neofiles::File may be seen as remote filesystem, where you drop in files and keep
+# their generated IDs to fetch them later, or setup web frontend via Neofiles::Files/ImagesController and request file
+# bytes by ID from there.
+#
+# When persisting new file to the MongoDB database one must initialize new instance with metadata and set field #file=
+# to IO-like object that holds real bytes. When #save method is called, file metadata are saved into Neofiles::File
+# and file content is read and saved into collection of Neofiles::FileChunk, each of maximum length of #chunk_size bytes:
+#
+#   logo = Neofiles::File.new
+#   logo.description = 'ACME inc logo'
+#   logo.file = '~/my-first-try.png' # or some opened file handle, or IO stream
+#   logo.filename = 'acme.png'
+#   logo.save
+#   logo.chunks.to_a # return an array of Neofiles::FileChunk in order
+#   logo.data # byte string of file contents
+#
+#   # in view.html.slim
+#   - logo = Neofiles::File.find 'xxx'
+#   = neofiles_file_url logo          # 'http://doma.in/neofiles/serve-file/#{logo.id}'
+#   = neofiles_link logo, 'Our logo'  # '<a href="...#{logo.id}">Our logo</a>'
+#
+# This file/chunks concept is called Mongo GridFS (Grid File System) and is described as a standard way of storing files
+# in MongoDB.
+#
+# MongoDB collection & client (session) can be changed via Rails.application.config.neofiles.mongo_files_collection
+# and Rails.application.config.neofiles.mongo_client
+#
+# Model fields:
+#
+#   filename      - real name of file, is guessed when setting #file= but can be changed manually later
+#   content_type  - MIME content type, is guessed when setting #file= but can be changed manually later
+#   length        - file size in bytes
+#   chunk_size    - max Neofiles::FileChunk size in bytes
+#   md5           - md5 hash of file (to find duplicates for example)
+#   description   - arbitrary description
+#   owner_type/id - as in Mongoid polymorphic belongs_to relation, a class name & ID of object this file belongs to
+#   is_deleted    - flag that file was once marked as deleted (just a flag for future use, affects nothing)
+#
+# There is no sense in deleting a file since space it used to hold is not reallocated by MongoDB, so files are considered
+# forever lasting. But technically it is possible to delete model instance and it's chunks will be deleted as well.
+#
 class Neofiles::File
 
   include Mongoid::Document
@@ -26,13 +68,14 @@ class Neofiles::File
 
 
 
-  # Пройдемся по всем чанкам, вызывая блок.
+  # Yield block for each chunk.
   def each(&block)
     chunks.all.order_by([:n, :asc]).each do |chunk|
       block.call(chunk.to_s)
     end
   end
 
+  # Get a portion of chunks, either via Range of Fixnum (length).
   def slice(*args)
     case args.first
       when Range
@@ -59,25 +102,25 @@ class Neofiles::File
     data[offset, length]
   end
 
-  # Получим байты файла в виде строки.
+  # Chunks bytes concatenated, that is the whole file content.
   def data
     data = ''
     each { |chunk| data << chunk }
     data
   end
 
-  # Закодируем картинку в base64.
+  # Encode bytes in base64.
   def base64
     Array(to_s).pack('m')
   end
 
-  # Закодируем картинку в DATA URI.
+  # Encode bytes id data uri.
   def data_uri(options = {})
     data = base64.chomp
     "data:#{content_type};base64,#{data}"
   end
 
-  # Получим байты файла в виде массива чанков. Если передан блок, то будем вызывать блок для каждого загружаемого чанка.
+  # Bytes as chunks array, if block is given — yield it.
   def bytes(&block)
     if block
       each { |data| block.call(data) }
@@ -91,11 +134,10 @@ class Neofiles::File
 
 
 
-  # Файл, который нужно сохранить. Если это поле не nil, то при следующем вызове save будем сохранять файл.
   attr_reader :file
 
-  # Добавить файл. Можеть быть имя файла или его дескриптор. Фактически, может быть и потоком.
-  # Реально работа не делается, только сохраняем ссылку на файл, сохранять будем в before_save.
+  # If not nil the next call to #save will fetch bytes from this file and save them in chunks.
+  # Filename and content type are guessed from argument.
   def file=(file)
     @file = file
 
@@ -108,24 +150,21 @@ class Neofiles::File
     end
   end
 
-  # Есть ли несохраненный файл?
+  # Are we going to save file bytes on next #save?
   def unpersisted_file?
     not @file.nil?
   end
 
-  # Перед сохранением запишем все кусочки файла в коллекцию чанков.
+  # Real file saving goes here.
+  # File length and md5 hash are computed automatically.
   def save_file
     if @file
-      # удалим уже существущие чанки
       self.chunks.delete_all
 
-      # теперь прочитаем картинку заново и запишем в монго
       md5 = Digest::MD5.new
-      length = 0
-      n = 0 # ???
+      length, n = 0, 0
 
       self.class.reading(@file) do |io|
-
         self.class.chunking(io, chunk_size) do |buf|
           md5 << buf
           length += buf.size
@@ -136,28 +175,25 @@ class Neofiles::File
           chunk.save!
           self.chunks.push(chunk)
         end
-
       end
 
       self.length = length
-      self.md5 = md5.hexdigest
+      self.md5    = md5.hexdigest
     end
   end
 
-  # Сохранили, значит, уберем ссылку на сохраненный файл.
+  # Reset @file after save.
   def nullify_unpersisted_file
     @file = nil
   end
 
-  # Как будет выглядеть в админке этот файл в "компактном" представлении (при загрузке, в альбомах и т. п.)
-  # Простой файл показывается в виде ссылки с описанием или названием.
+  # Representation of file in admin "compact" mode, @see Neofiles::AdminController#file_compact.
+  # To be redefined by descendants.
   def admin_compact_view(template)
     template.neofiles_link self, nil, target: '_blank'
   end
 
-
-
-  # Обернем входной аргумент в поток (так как аргумент может быть именем файла или потоком). Для потока вызовем блок.
+  # Yield block with IO stream made from input arg, which can be file name or other IO readable object.
   def self.reading(arg, &block)
     if arg.respond_to?(:read)
       self.rewind(arg) do |io|
@@ -170,11 +206,11 @@ class Neofiles::File
     end
   end
 
-  # Читаем поток, разбивая на чанки длинной chunk_size, и вызываем блок для каждого чанка.
+  # Split IO stream by chunks chunk_size bytes each and yield each chunk in block.
   def self.chunking(io, chunk_size, &block)
     if io.method(:read).arity == 0
       data = io.read
-      i = 0 # ???
+      i = 0
       loop do
         offset = i * chunk_size
         length = i + chunk_size < data.size ? chunk_size : data.size - offset
@@ -192,15 +228,15 @@ class Neofiles::File
     end
   end
 
-  # Метод, конструирующий из строки бинарный объект для Монги.
+  # Construct Mongoid binary object from string of bytes.
   def self.binary_for(*buf)
     BSON::Binary.new(:generic, buf.join)
   end
 
-  # Получим имя файла (без директории) для входного объекта. Пробуем разные способы: :path, :filename etc.
+  # Try different methods to extract file name or path from argument object.
   def self.extract_basename(object)
     filename = nil
-    %i(original_path original_filename path filename pathname).each do |msg|
+    %i{ original_path original_filename path filename pathname }.each do |msg|
       if object.respond_to?(msg)
         filename = object.send(msg)
         break
@@ -209,7 +245,7 @@ class Neofiles::File
     filename ? cleanname(filename) : nil
   end
 
-  # Получим строку вида image/jpeg из имени файла xxxx.jpg.
+  # Try different methods to extract MIME content type from file name, e.g. jpeg -> image/jpeg
   def self.extract_content_type(basename)
     if defined?(MIME)
       content_type = MIME::Types.type_for(basename.to_s).first
@@ -227,15 +263,18 @@ class Neofiles::File
     content_type.to_s if content_type
   end
 
-  # Отрежем директорию от пути до файла.
+  # Extract only file name partion from path.
   def self.cleanname(pathname)
     ::File.basename(pathname.to_s)
   end
 
-  # Возвращает тип класса-наследника, который должен использоваться для сохранения файла типа content_type.
-  # Если не найдет, вернет себя (Neofiles::File).
+  # Guess descendant class of Neofiles::File by MIME content type to use special purpose class for different file types:
   #
   #   Neofiles::File.file_class_by_content_type('image/jpeg') # -> Neofiles::Image
+  #   Neofiles::File.file_class_by_content_type('some/unknown') # -> Neofiles::File
+  #
+  # Can be used when persisting new files or loading from database.
+  #
   def self.class_by_content_type(content_type)
     case content_type
     when /\Aimage\//
@@ -247,15 +286,17 @@ class Neofiles::File
     end
   end
 
+  # Same as file_class_by_content_type but for file name string.
   def self.class_by_file_name(file_name)
     class_by_content_type(extract_content_type(file_name))
   end
 
+  # Same as file_class_by_content_type but for file-like object.
   def self.class_by_file_object(file_object)
     class_by_file_name(extract_basename(file_object))
   end
 
-  # Перемотаем в начало аргумент, считая его потоком, и запустим для него (потока) блок.
+  # Yield IO-like argument to block rewinding it first, if possible.
   def self.rewind(io, &block)
     begin
       pos = io.pos

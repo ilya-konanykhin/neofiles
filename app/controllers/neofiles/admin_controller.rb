@@ -1,8 +1,41 @@
+# The main controller, doing all persistence related activities. It extends ApplicationController to derive
+# any application-specific business logic, like before/after filters, auth & auth and stuff.
+#
+# To setup routes to this controller use Neofiles.routes_proc, @see lib/neofiles.rb
+#
+# As the main principle behind whole Neofiles thing is AJAX file manipulations, actions of this controller
+# mainly form backend for AJAX calls.
+#
 class Neofiles::AdminController < ApplicationController
 
+  # TODO: remove this! it should be controlled on application side
   skip_before_filter :verify_authenticity_token
 
-  # Просмотр файла в компактном виде (картинка + кнопки "удалить" и пр.)
+  # Build AJAX edit/upload form for a single file in compact way: small file thumbnail + misc buttons, like "delete",
+  # "change options" etc.
+  #
+  # It is expected that someday there will be "full" view (hence the prefix "compact" here), with metadata shown
+  # and all kinds of tools exposed.
+  #
+  # If param[:id] is present, the form displayed if for editing file, while empty or non existent ID displays
+  # an upload form.
+  #
+  # Parameter fake_request allows to build form when needed, when there is no actual request available
+  # (@see #file_save).
+  #
+  # Main parameters:
+  #
+  #   request[:input_name]    - input with this name will be present in HTML and populated with ID of persisted file
+  #   request[:widget_id]     - DOM identifier for this file widget instance
+  #   request[:clean_remove]  - after deleting this file, no substituting upload form should be shown (default '0')
+  #   request[:append_create] - after persisting new file, action should return form for the file + an upload form
+  #                             (default '0')
+  #   request[:disabled]      - only show file, not allow anything to be edited (default '0')
+  #   request[:multiple]      - allow uploading of multiple files at once (default '0')
+  #   request[:with_desc]     - show short file description (default '0')
+  #
+  # Parameters clear_remove & append_create are used to organize Albums — technically a collection of single files.
+  #
   def file_compact(fake_request = nil)
     request = fake_request || self.request
 
@@ -30,7 +63,13 @@ class Neofiles::AdminController < ApplicationController
     end
   end
 
-  # Сохраняем файл.
+  # Persist new file(s) to database and return view forms for all of them (@see #file_compact) as one big HTML.
+  #
+  # Raises exception if something went wrong.
+  #
+  # This method uses append_create parameter originally passed to #file_compact (stored by JavaScript and sent again
+  # via AJAX call).
+  #
   def file_save
     data = request[:neofiles]
     raise ArgumentError.new I18n.t('neofiles.data_not_passed') unless data.is_a? Hash
@@ -45,7 +84,6 @@ class Neofiles::AdminController < ApplicationController
     files.each_with_index do |uploaded_file, i|
       errors.push("#{I18n.t('neofiles.file_not_passed')} (#{i + 1})") and next unless uploaded_file.respond_to? :read
 
-      # создадим новый файл, если описание не передано, возьмем от старого, если есть
       file_class = Neofiles::File.class_by_file_object(uploaded_file)
       file = file_class.new do |f|
         f.description = data[:description].presence || old_file.try(:description)
@@ -76,30 +114,38 @@ class Neofiles::AdminController < ApplicationController
     render text: result.join, layout: false
   end
 
-  # Удаляем файл.
+  # As we don't actually delete anything, this method only marks file as deleted.
+  #
+  # This method uses clean_remove parameter originally passed to #file_compact (stored by JavaScript and sent again
+  # via AJAX call).
+  #
   def file_remove
     file, data = find_file_and_data
 
-    # реально мы не удаляем файл
     file.is_deleted = true
     file.save!
 
-    # если передан clean_remove (не 0), то вернем пустой результат
     return render text: '' if data[:clean_remove].present? && data[:clean_remove] != '0'
 
-    # clean_remove пустой, значит, перекинем на просмотр (загрузку) пустого файла
     redirect_to neofiles_file_compact_path(data.merge(id: nil))
   end
 
-  # Обновляем поля файла ("не ставить водяной знак", "описание" и пр.)
+  # As Neofiles treats files as immutables, this method updates only auxiliary fields: description, no_wm etc.
+  #
+  # Returns nothing.
+  #
   def file_update
     file, data = find_file_and_data
     file.update data.slice(:description, :no_wm)
     render text: '', layout: false
   end
 
-  # Обработка загрузки файла через redactor.js. Получает файл и мета-данные (owner_type, owner_id) и отдает JSON,
-  # в котором путь до загруженного файла.
+  # Neofiles knows how to play with Redactor.js and this method persists files uploaded via this WYSIWYG editor.
+  #
+  # Redactor.js may know which owner object is edited so we can store owner_type/id for later use.
+  #
+  # Returns JSON list of persisted files.
+  #
   def redactor_upload
     owner_type, owner_id, file = prepare_owner_type(request[:owner_type]), request[:owner_id], request[:file]
     raise ArgumentError.new I18n.t('neofiles.data_not_passed') if owner_type.blank? || owner_id.blank?
@@ -119,18 +165,17 @@ class Neofiles::AdminController < ApplicationController
     Rails.application.config.neofiles.before_save.try!(:call, file)
     file.save!
 
-    # вернем путь до загруженного файла
+    # returns JSON {filelink: '/neofiles/serve-file/#{file.id}'}
     render json: {filelink: neofiles_file_path(file), filename: file.filename}
   end
 
-  # Список загруженных файлов в формате JSON для redactor.js.
+  # Returns JSON of files assigned to specific owner to show them in Redactor.js tab "previously uploaded files".
+  #
   def redactor_list
     type, owner_type, owner_id = request[:type], prepare_owner_type(request[:owner_type]), request[:owner_id]
 
-    # по-умолчанию тип file
-    type ||= "file"
+    type ||= 'file'
 
-    # проверим, есть ли такой тип файла?
     begin
       file_class = "Neofiles::#{type.classify}".constantize
     rescue
@@ -156,6 +201,7 @@ class Neofiles::AdminController < ApplicationController
       end
     end
 
+    # returns JSON [{filelink: '/neofiles/serve-file/#{file.id}', title: '...', thumb: '/neo.../100x100'}, {...}, ...]
     render json: result
 
   rescue
@@ -166,6 +212,7 @@ class Neofiles::AdminController < ApplicationController
 
   private
 
+  # Fetch common data from request.
   def find_file_and_data
     data = request[:neofiles]
     raise ArgumentError.new I18n.t('neofiles.data_not_passed') if data.blank? || !(data.is_a? Hash)
@@ -174,6 +221,7 @@ class Neofiles::AdminController < ApplicationController
     [Neofiles::File.find(data[:id]), data]
   end
 
+  # TODO: owner_type must be stored properly as in Mongoid polymorphic relation
   def prepare_owner_type(type)
     type.to_s.gsub(':', '/')
   end

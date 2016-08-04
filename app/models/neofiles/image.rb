@@ -1,3 +1,10 @@
+# Special case of Neofiles::File for dealing with images.
+#
+# Alongside usual file things:
+# 1) stores width & height of image;
+# 2) does some useful manipulations, like EXIF rotation & cleaning;
+# 3) stores no_wm [no_watermark] flag to tell Neofiles::ImagesController not to put watermark automatically.
+#
 class Neofiles::Image < Neofiles::File
 
   class ImageFormatException < Exception; end
@@ -7,10 +14,14 @@ class Neofiles::Image < Neofiles::File
 
   field :no_wm, type: Mongoid::Boolean
 
-  # Перед сохранением обработаем поворот картинки (если есть инфа) и запишем ширину и высоту.
-  # Обязательно вызовем родительский save_file.
+  # Do useful stuf before calling parent #save from Neofiles::File.
   #
-  # После поворота вся информация из Экзифа стирается, чтобы потом не мешать и еще раз не поворачивать. Нужно ли это?
+  # 1. Rotates image if orientation is present in EXIF and Rails.application.config.neofiles.image_rotate_exif == true.
+  # 2. Cleans all EXIF data if Rails.application.config.neofiles.image_clean_exif == true.
+  # 3. Crops input to some max size in case enormous 10000x10000 px input is provided
+  #    (fill Rails.application.config.neofiles.image_max_dimensions with [w, h] or {width: w, height: h} or wh)
+  #
+  # Uses MiniMagick and works only with JPEG, PNG & GIF formats.
   #
   # TODO: переделать работу с файлом. Сейчас МиниМеджик копирует входной файл в темповую директорию, после его обработки
   # я делаю еще одну темповую копию и ее тут же читаю - неэкономно! Это сделано потому, что МиниМеджик не дает мне инфу
@@ -22,18 +33,17 @@ class Neofiles::Image < Neofiles::File
 
     return if @file.nil?
 
-    # откроем файл для обработки
     begin
       image = ::MiniMagick::Image.read @file
     rescue ::MiniMagick::Invalid
       raise ImageFormatException.new I18n.t('neofiles.mini_magick_error')
     end
 
-    # какой тип у картинки, мы вообще такие берем?
+    # check input forma
     type = image[:format].downcase
     raise ImageFormatException.new I18n.t('neofiles.unsupported_image_type', type: type.upcase) unless type.in? %w{ jpeg gif png }
 
-    # повернем картинку, если она была сфотана "криво"
+    # rotate from exit
     dimensions = image[:dimensions]
     if Rails.application.config.neofiles.image_rotate_exif
       case image['exif:orientation']
@@ -48,10 +58,10 @@ class Neofiles::Image < Neofiles::File
       end
     end
 
-    # уберем все левые данные
+    # clean exif
     image.strip if Rails.application.config.neofiles.image_clean_exif
 
-    # обрежем, если нужно
+    # crop to max size
     if crop_dimensions = Rails.application.config.neofiles.image_max_dimensions
       if crop_dimensions.is_a? Hash
         crop_dimensions = crop_dimensions.values_at :width, :height
@@ -63,22 +73,21 @@ class Neofiles::Image < Neofiles::File
       dimensions = image[:dimensions]
     end
 
-    # сохраним ширину, высоту и тип
+    # fill in some fields
     self.width = dimensions[0]
     self.height = dimensions[1]
     self.content_type = "image/#{type}"
 
     begin
-
-      # запишем картинку в темп
+      # make temp image
       tempfile = Tempfile.new 'neofiles-image'
       tempfile.binmode
       image.write tempfile
 
-      # подменим загружаемый файл нашим временным с результатом обработки
+      # substitute file to be saved with the temp
       @file = tempfile
 
-      # наконец, вызовем родительский код для сохранения файла в чанках + всякие поля md5 и прочие
+      # call super #save
       super
 
     ensure
@@ -87,6 +96,7 @@ class Neofiles::Image < Neofiles::File
     end
   end
 
+  # Return array with width & height decorated with singleton function to_s returning 'WxH' string.
   def dimensions
     dim = [width, height]
     def dim.to_s
@@ -95,14 +105,14 @@ class Neofiles::Image < Neofiles::File
     dim
   end
 
-  # Как будет выглядеть в админке этот файл в "компактном" представлении (при загрузке, в альбомах и т. п.)
-  # Картинка показывается в виде ссылки с необрезанной иконкой 100 на 100.
+  # Overrides parent "admin views" with square 100x100 thumbnail.
   def admin_compact_view(template)
-    # _path а не _url, чтобы не потерять админскую сессионную куку при переходе на другой домен
+    # _path instead of _url to keep admin session cookie which is lost when changing domains
     url_method = Neofiles.is_admin?(template) ? :neofiles_image_nowm_path : :neofiles_image_path
     template.neofiles_img_link self, 100, 100, {}, target: '_blank', href: template.send(url_method, self)
   end
 
+  # Set no_wm from HTML form (value is a string '1'/'0').
   def no_wm=(value)
     write_attribute :no_wm, value.is_a?(String) ? value == '1' : value
   end

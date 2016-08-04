@@ -1,3 +1,6 @@
+# Model for storing portion of bytes from particular Neofiles::File. Has only two fields: the bytes string #data
+# and sequence number #n
+#
 class Neofiles::FileChunk
 
   include Mongoid::Document

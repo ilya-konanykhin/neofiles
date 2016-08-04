@@ -1,3 +1,7 @@
+# Return 404 NOT FOUND response when requested file is not found in the database.
+#
+# This concern is to be included in serving controllers (Files/ImagesController).
+#
 module Neofiles::NotFound
   extend ActiveSupport::Concern
 

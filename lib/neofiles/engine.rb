@@ -13,10 +13,12 @@ module Neofiles
     config.neofiles.image_rotate_exif     = true # rotate image, if exif contains orientation info
     config.neofiles.image_clean_exif      = true # clean all exif fields on save
     config.neofiles.image_max_dimensions  = nil  # resize huge originals to meaningful size: [w, h], {width: w, height: h}, wh
-    config.neofiles.image_max_crop_width  = 2000
-    config.neofiles.image_max_crop_height = 2000
+    config.neofiles.image_max_crop_width  = 2000 # users can request resizing only up to this width
+    config.neofiles.image_max_crop_height = 2000 # users can request resizing only up to this height
 
     # default watermarker — redefine to set special watermarking logic
+    # by default, watermark only images larger than 300x300 with watermark at the bottom center, taken from file
+    # /app/assets/images/neofiles/watermark.png
     config.neofiles.watermarker = ->(image, no_watermark: false, watermark_width:, watermark_height:){
       if watermark_width < 300 || watermark_height < 300 || no_watermark
         return image.to_blob

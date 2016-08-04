@@ -1,3 +1,7 @@
+# Special case of Neofiles::File for dealing with SWF movies.
+#
+# Alongside usual file things, stores width & height of Flash clip.
+#
 require_dependency 'image_spec'
 
 class Neofiles::Swf < Neofiles::File
@@ -9,6 +13,7 @@ class Neofiles::Swf < Neofiles::File
 
   before_save :compute_dimensions
 
+  # Return array with width & height decorated with singleton function to_s returning 'WxH' string.
   def dimensions
     dim = [width, height]
     def dim.to_s
@@ -17,8 +22,7 @@ class Neofiles::Swf < Neofiles::File
     dim
   end
 
-  # Как будет выглядеть в админке этот файл в "компактном" представлении (при загрузке, в альбомах и т. п.)
-  # Картинка показывается в виде ссылки с необрезанной иконкой 100 на 100.
+  # Overrides parent "admin views" with square 100x100 Flash thumbnail.
   def admin_compact_view(view_context)
     view_context.neofiles_link self, view_context.tag(:img, src: view_context.image_path('neofiles/swf-thumb-100x100.png')), target: '_blank'
   end
@@ -27,7 +31,7 @@ class Neofiles::Swf < Neofiles::File
 
   private
 
-  # При сохранении запишем ширину и высоту файла.
+  # Store dimensions on #save.
   def compute_dimensions
     return unless @file
 

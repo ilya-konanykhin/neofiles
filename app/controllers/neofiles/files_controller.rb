@@ -1,3 +1,7 @@
+# Controller that serves files from the database via single action #show.
+#
+# If the file requested is an image redirect to Neofiles::ImagesController is made.
+#
 class Neofiles::FilesController < ActionController::Metal
 
   include ActionController::DataStreaming

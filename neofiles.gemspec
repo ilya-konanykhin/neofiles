@@ -1,9 +1,7 @@
 $:.push File.expand_path('../lib', __FILE__)
 
-# Maintain your gem's version:
 require 'neofiles/version'
 
-# Describe your gem and declare its dependencies:
 Gem::Specification.new do |s|
   s.name        = 'neofiles'
   s.version     = Neofiles::VERSION
@@ -18,6 +16,6 @@ Gem::Specification.new do |s|
 
   s.add_dependency 'rails', '4.0.0'
   s.add_dependency 'mongoid', '5.0.0'
-  s.add_dependency 'ruby-imagespec' # определения ширины и высоты флешевого файла
-  s.add_dependency 'mini_magick'
+  s.add_dependency 'ruby-imagespec' # parse SWF files for width & height info
+  s.add_dependency 'mini_magick'    # image manipulation utility (wrapper around famous console tool ImageMagick)
 end
