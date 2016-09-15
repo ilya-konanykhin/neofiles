@@ -17,10 +17,10 @@ class Neofiles::AdminController < ApplicationController
   # It is expected that someday there will be "full" view (hence the prefix "compact" here), with metadata shown
   # and all kinds of tools exposed.
   #
-  # If param[:id] is present, the form displayed if for editing file, while empty or non existent ID displays
+  # If param[:id] is present, the form displayed is for editing a file, while empty or non existent ID displays
   # an upload form.
   #
-  # Parameter fake_request allows to build form when needed, when there is no actual request available
+  # The parameter fake_request allows to build form when needed, when there is no actual request available
   # (@see #file_save).
   #
   # Main parameters:
