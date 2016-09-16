@@ -11,15 +11,15 @@ fitted for your task, try switching to more classic alternatives like Paperclip 
 The classical approach of storing files in a local filesystem and postprocessing them at the moment of upload/save has
 the following drawbacks:
 
-1) Hard to copy/backup/shard the entire file set or its part.
-1) Almost impossible to make batch queries like finding a subset of files by some criteria.
-1) Complex metadata handling via a companion DB model + usually gems do not provide such functionality, DIY.
-1) Hard to change postprocessing rules, say when design changes and you need an avatar 20px larger — oops, we need to
-   travel through all the objects and resave originals or thumbnails (if originals are available, of course, which
-   is not always the case).
-1) The last point naturally leads to another: why at all a model needs to know how its logo must be resized or otherwise
-   postprocessed for the sake of design or whatever? This is completely irrelevant to the model itself and should be
-   defined elsewhere.
+1.  Hard to copy/backup/shard the entire file set or its part.
+1.  Almost impossible to make batch queries like finding a subset of files by some criteria.
+1.  Complex metadata handling via a companion DB model + usually gems do not provide such functionality, DIY.
+1.  Hard to change postprocessing rules, say when design changes and you need an avatar 20px larger — oops, we need to
+    travel through all the objects and resave originals or thumbnails (if originals are available, of course, which
+    is not always the case).
+1.  The last point naturally leads to another: why at all a model needs to know how its logo must be resized or otherwise
+    postprocessed for the sake of design or whatever? This is completely irrelevant to the model itself and should be
+    defined elsewhere.
 
 Neofiles addresses these issues in following ways:
 
@@ -264,54 +264,56 @@ It is ok to request an image via the `FilesController` as it is smart enough to 
 
 ***Production notes***:
 
-1) It may be good to put the burden of serving files to a different server than where your main application resides.
-   Create a new environment called `neofiles` and setup its deploy accordingly (leave only Neofiles and MongoDB related
-   things).
-1) Server from point (1) forms naturally a simple CDN: give it a proper name, say `strg.domain.com`, set it inside
-   your neofiles config as `cdns` and all your files will be downloaded faster since browser can now send more
-   parallel requests. If the server is powerful enough create even more domains like `str1/2/3...` pointing to it to get
-   even more speed.
-1) (1) + (2) lead to the rule: always use `*_url` route helpers instead of `*_path` ones, as the former takes into
-   account `cdns`. 
-1) Make sure your session cookies (or other means of identifying admins) are available to CDN domains since they need
-   to check for `is_admin?`. 
-1) You ***must*** set up caching in front of streaming controllers, with one exception: `/neofiles/nowm-serve-image`
-   must always hit the application as it checks if an admin is logged in. If you cache it you will give everyone
-   watermarkless cached copies of image originals. Example Nginx config:
+1.  It may be good to put the burden of serving files to a different server than where your main application resides.
+    Create a new environment called `neofiles` and setup its deploy accordingly (leave only Neofiles and MongoDB related
+    things).
+1.  Server from point (1) forms naturally a simple CDN: give it a proper name, say `strg.domain.com`, set it inside
+    your neofiles config as `cdns` and all your files will be downloaded faster since browser can now send more
+    parallel requests.
+    
+    If the server is powerful enough create even more domains like `str1/2/3...` pointing to it to get
+    even more speed.
+1.  (1) + (2) lead to the rule: always use `*_url` route helpers instead of `*_path` ones, as the former takes into
+    account `cdns`. 
+1.  Make sure your session cookies (or other means of identifying admins) are available to CDN domains since they need
+    to check for `is_admin?`. 
+1.  You ***must*** set up caching in front of streaming controllers, with one exception: `/neofiles/nowm-serve-image`
+    must always hit the application as it checks if an admin is logged in. If you cache it you will give everyone
+    watermarkless cached copies of image originals. Example Nginx config:
 
-```
-server {
-    listen 80;
-    server_name strg1.domain.com strg2.domain.com;
-    root /var/www/neofiles/current/public;
-    
-    location /neofiles/serve {
-      
-      if ($http_if_modified_since) {
-        return 304;
-      }
-      if ($http_if_none_match) {
-        return 304;
-      }
-    
-      expires max;
-      add_header Cache-Control public;
-      add_header Last-Modified "Sat, 1 Jan 2012 00:00:00 GMT";
-    
-      proxy_cache_valid 200 30d;
-      proxy_cache_valid 404 301 302 304 5m;
-      proxy_cache_key "$request_uri";
-      proxy_ignore_headers "Expires" "Cache-Control" "Set-Cookie";
-    
-      proxy_cache neofiles;
-      proxy_pass http://neofiles;
-    }
-}
-
-upstream neofiles {
-    server unix:/var/run/neofiles.sock;
-}
-```
+        ```
+        server {
+            listen 80;
+            server_name strg1.domain.com strg2.domain.com;
+            root /var/www/neofiles/current/public;
+            
+            location /neofiles/serve {
+              
+              if ($http_if_modified_since) {
+                return 304;
+              }
+              if ($http_if_none_match) {
+                return 304;
+              }
+            
+              expires max;
+              add_header Cache-Control public;
+              add_header Last-Modified "Sat, 1 Jan 2012 00:00:00 GMT";
+            
+              proxy_cache_valid 200 30d;
+              proxy_cache_valid 404 301 302 304 5m;
+              proxy_cache_key "$request_uri";
+              proxy_ignore_headers "Expires" "Cache-Control" "Set-Cookie";
+            
+              proxy_cache neofiles;
+              proxy_pass http://neofiles;
+            }
+        }
+        
+        upstream neofiles {
+            server unix:/var/run/neofiles.sock;
+        }
+        ```
 
 View helpers
 ------------
