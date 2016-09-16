@@ -285,7 +285,6 @@ It is ok to request an image via the `FilesController` as it is smart enough to 
     must always hit the application as it checks if an admin is logged in. If you cache it you will give everyone
     watermarkless cached copies of image originals. Example Nginx config:
 
-        ```
         server {
             listen 80;
             server_name strg1.domain.com strg2.domain.com;
@@ -317,7 +316,6 @@ It is ok to request an image via the `FilesController` as it is smart enough to 
         upstream neofiles {
             server unix:/var/run/neofiles.sock;
         }
-        ```
 
 View helpers
 ------------
