@@ -267,16 +267,20 @@ It is ok to request an image via the `FilesController` as it is smart enough to 
 1.  It may be good to put the burden of serving files to a different server than where your main application resides.
     Create a new environment called `neofiles` and setup its deploy accordingly (leave only Neofiles and MongoDB related
     things).
+
 1.  Server from point (1) forms naturally a simple CDN: give it a proper name, say `strg.domain.com`, set it inside
     your neofiles config as `cdns` and all your files will be downloaded faster since browser can now send more
     parallel requests.
     
     If the server is powerful enough create even more domains like `str1/2/3...` pointing to it to get
     even more speed.
+
 1.  (1) + (2) lead to the rule: always use `*_url` route helpers instead of `*_path` ones, as the former takes into
     account `cdns`. 
+
 1.  Make sure your session cookies (or other means of identifying admins) are available to CDN domains since they need
     to check for `is_admin?`. 
+
 1.  You ***must*** set up caching in front of streaming controllers, with one exception: `/neofiles/nowm-serve-image`
     must always hit the application as it checks if an admin is logged in. If you cache it you will give everyone
     watermarkless cached copies of image originals. Example Nginx config:
