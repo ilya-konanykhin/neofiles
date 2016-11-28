@@ -15,8 +15,8 @@ Gem::Specification.new do |s|
   s.files = Dir['{app,config,db,lib}/**/*'] + ['LICENSE', 'Rakefile', 'README.md']
   s.test_files = Dir['spec/**/*']
 
-  s.add_dependency 'rails', '~> 4.0.0'
-  s.add_dependency 'mongoid', '~> 5.0.0'
+  s.add_dependency 'rails', '~> 4.0'
+  s.add_dependency 'mongoid', '~> 5.0'
   s.add_dependency 'ruby-imagespec', '0.4.1'  # parse SWF files for width & height info
   s.add_dependency 'mini_magick', '3.7.0'     # image manipulation utility (wrapper around famous console tool ImageMagick)
 end
