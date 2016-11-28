@@ -1,21 +1,21 @@
 ru:
   neofiles:
-    403_access_denied: Ошибка 403: недостаточно прав для получения файла в таком формате
-    404_not_found: Ошибка 404: файл не найден
-    file_not_found: Файл не найден
-    data_not_passed: Не переданы данные для сохранения
-    file_not_passed: Не передан файл для сохранения
-    id_not_passed: Не передан ID
-    unknown_file_type: Не могу создать файл неизвестного типа %{type}
-    swf_type_incorrect: Файл с расширением SWF определяется как %{content_type}
-    mini_magick_error: Не могу обработать переданное изображение
-    unsupported_image_type: Формат картинок %{type} не поддерживается
+    403_access_denied: 'Ошибка 403: недостаточно прав для получения файла в таком формате'
+    404_not_found: 'Ошибка 404: файл не найден'
+    file_not_found: 'Файл не найден'
+    data_not_passed: 'Не переданы данные для сохранения'
+    file_not_passed: 'Не передан файл для сохранения'
+    id_not_passed: 'Не передан ID'
+    unknown_file_type: 'Не могу создать файл неизвестного типа %{type}'
+    swf_type_incorrect: 'Файл с расширением SWF определяется как %{content_type}'
+    mini_magick_error: 'Не могу обработать переданное изображение'
+    unsupported_image_type: 'Формат картинок %{type} не поддерживается'
 
     views:
-      no_description: Без описания
-      local_date_format: %d.%m.%Y <span class="muted text-muted">в %H:%M</span>
-      created_at: Создан %{local_date}
-      owner: Владелец
-      no_wm: не ставить водяной знак
-      save: Сохранить
-      description: Описание
+      no_description: 'Без описания'
+      local_date_format: '%d.%m.%Y <span class="muted text-muted">в %H:%M</span>'
+      created_at: 'Создан %{local_date}'
+      owner: 'Владелец'
+      no_wm: 'не ставить водяной знак'
+      save: 'Сохранить'
+      description: 'Описание'

@@ -168,7 +168,7 @@ HTML
     if image_file.is_a? Neofiles::Image
       image_file_width = image_file.width
       image_file_height = image_file.height
-    else
+    elsif image_file.is_a? Hash
       image_file_width = image_file[:width]
       image_file_height = image_file[:height]
     end

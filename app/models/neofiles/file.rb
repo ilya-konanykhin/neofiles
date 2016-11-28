@@ -230,7 +230,7 @@ class Neofiles::File
 
   # Construct Mongoid binary object from string of bytes.
   def self.binary_for(*buf)
-    BSON::Binary.new(:generic, buf.join)
+    BSON::Binary.new(buf.join, :generic)
   end
 
   # Try different methods to extract file name or path from argument object.
