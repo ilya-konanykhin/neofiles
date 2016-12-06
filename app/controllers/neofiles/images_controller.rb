@@ -8,6 +8,11 @@ class Neofiles::ImagesController < ActionController::Metal
   include ActionController::RackDelegation
   include Neofiles::NotFound
 
+  if defined?(Devise)
+    include ActionController::Helpers
+    include Devise::Controllers::Helpers
+  end
+
   CROP_MAX_WIDTH = Rails.application.config.neofiles.image_max_crop_width
   CROP_MAX_HEIGHT = Rails.application.config.neofiles.image_max_crop_height
 
