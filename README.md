@@ -73,7 +73,7 @@ Installation, dependencies
 Add Neofiles and its dependencies to your gemfile:
 
 ``` ruby
-gem 'neofiles', git: 'git@bitbucket.org:neolabs-kz/gem_neo_files.git'
+gem 'neofiles'
 gem 'ruby-imagespec', git: 'git://github.com/dim/ruby-imagespec.git'
 gem 'mini_magick', '3.7.0'
 ```
@@ -126,7 +126,7 @@ Routes `/neofiles/admin/*` form AJAX backend for file manipulations. The last 3 
 Usage with CCK
 --------------
 
-Neofiles gem is used mainly with two other gems: cck & cck_forms (CCK stands for Content Construction Kit).
+Neofiles gem is used mainly with two other gems: cck & [cck_forms](http://github.com/ilya-konanykhin/cck_forms) (CCK stands for Content Construction Kit).
 
 Using these gems together provides straightforward and extremely easy way to handle file storage and manipulation.
 
