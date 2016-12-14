@@ -166,7 +166,7 @@ class Neofiles::AdminController < ApplicationController
     file.save!
 
     # returns JSON {url: '/neofiles/serve-file/#{file.id}'}
-    render json: {url: neofiles_file_path(file), name: file.filename}
+    render json: {filelink: neofiles_file_path(file), filename: file.filename, url: neofiles_file_path(file), name: file.filename}
   end
 
   # Returns JSON of files assigned to specific owner to show them in Redactor.js tab "previously uploaded files".
