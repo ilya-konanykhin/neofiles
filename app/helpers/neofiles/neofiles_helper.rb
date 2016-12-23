@@ -143,7 +143,8 @@ HTML
 
   # Override image URL generation to include CDN prefix.
   def neofiles_image_url(*args)
-    neofiles_cdn_prefix(*args) + neofiles_image_path(*args)
+    image_path = args.first.is_a?(Hash) ? neofiles_image_path(args.first.try(:[], :id)) : neofiles_image_path(*args)
+    neofiles_cdn_prefix(*args) + image_path
   end
 
 
