@@ -255,6 +255,8 @@ class Neofiles::File
         content_type = 'image/' + ext.sub(/jpg/, 'jpeg')
       elsif ext == 'swf'
         content_type = 'application/x-shockwave-flash'
+      elsif ext == 'svg'
+        content_type = 'image/svg+xml'
       else
         content_type = nil
       end
@@ -277,6 +279,8 @@ class Neofiles::File
   #
   def self.class_by_content_type(content_type)
     case content_type
+    when 'image/svg+xml'
+      ::Neofiles::File
     when /\Aimage\//
       ::Neofiles::Image
     when 'application/x-shockwave-flash'
