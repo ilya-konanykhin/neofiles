@@ -31,77 +31,40 @@ class Neofiles::ImagesController < ActionController::Metal
   # Rails.application.config.neofiles.watermarker if present.
   #
   def show
-
     # get image
     image_file = Neofiles::Image.find params[:id]
 
     # prepare headers
     data = image_file.data
     options = {
-      filename: CGI::escape(image_file.filename),
-      type: image_file.content_type || 'image/jpeg',
-      disposition: 'inline',
+        filename: CGI::escape(image_file.filename),
+        type: image_file.content_type || 'image/jpeg',
+        disposition: 'inline',
     }
+    quality = [[Neofiles::quality_requested(params), 100].min, 1].max if Neofiles::quality_requested?(params)
+    quality ||= 75 unless nowm?(image_file)
 
-    # is resizing needed?
-    watermark_image, watermark_width, watermark_height = data, image_file.width, image_file.height
+    image = MiniMagick::Image.read(data)
+
     if params[:format].present?
-
       width, height = params[:format].split('x').map(&:to_i)
-      watermark_width, watermark_height = width, height
       raise Mongoid::Errors::DocumentNotFound unless width.between?(1, CROP_MAX_WIDTH) and height.between?(1, CROP_MAX_HEIGHT)
-
-      quality = [[Neofiles::quality_requested(params), 100].min, 1].max if Neofiles::quality_requested?(params)
-      setting_quality = quality && options[:type] == 'image/jpeg'
-
-      image = MiniMagick::Image.read(data)
-
-      if Neofiles.crop_requested? params
-        # construct ImageMagick call:
-        # 1) resize to WxH, allow the result to be bigger on one side
-        # 2) allign resized to center
-        # 3) cut the extending parts
-        # 4) set quality if requested
-        image.combine_options do |c|
-          c.resize "#{width}x#{height}^"
-          c.gravity 'center'
-          c.extent "#{width}x#{height}"
-          c.quality "#{quality}" if setting_quality
-        end
-      else
-        # no cropping so just resize to fit in WxH, one side can be smaller than requested
-        if image_file.width > width || image_file.height > height
-          image.combine_options do |c|
-            c.resize "#{width}x#{height}"
-            c.quality "#{quality}" if setting_quality
-          end
-        else
-          setting_quality = false
-          watermark_width, watermark_height = image_file.width, image_file.height
-        end
-      end
-
-      # quality requested, but we didn't have a chance to set it before -> forcibly resave as JPEG
-      if quality && !setting_quality
-        image.format 'jpeg'
-        image.quality quality.to_s
-      end
-
-      # get image bytes and stuff
-      data = image.to_blob
-      watermark_image = image
-      options[:type] = image.mime_type
     end
 
-    watermark_image = MiniMagick::Image.read watermark_image unless watermark_image.is_a? MiniMagick::Image
+    crop_requested = Neofiles.crop_requested? params
+    validate_size = image_file.width > width || image_file.height > height if width && height
+
+    image.combine_options do |mogrify|
+      resize_image(mogrify, width, height, crop_requested, validate_size) if width && height
+      compress_image(mogrify, quality) if quality
+    end
+
+    # use pngquant when quality less than 75
+    PngQuantizator::Image.new(image.path).quantize! if options[:type] == 'image/png' && quality && quality < 75
 
     # set watermark
-    data = Rails.application.config.neofiles.watermarker.(
-      watermark_image,
-      no_watermark: nowm?(image_file),
-      watermark_width: watermark_width,
-      watermark_height: watermark_height
-    )
+    width, height = image_file.width, image_file.height unless validate_size
+    data = set_watermark(image, image_file, width, height)
 
     # stream image headers & bytes
     send_file_headers! options
@@ -132,4 +95,40 @@ class Neofiles::ImagesController < ActionController::Metal
       raise NotAdminException
     end
   end
+
+  def resize_image(mogrify, width, height, crop_requested, validate_size)
+    if crop_requested
+      mogrify.resize "#{width}x#{height}^"
+      mogrify.gravity 'center'
+      mogrify.extent "#{width}x#{height}"
+    elsif validate_size
+      mogrify.resize "#{width}x#{height}"
+    end
+  end
+
+  #More information: https://www.smashingmagazine.com/2015/06/efficient-image-resizing-with-imagemagick/
+  def compress_image(mogrify, quality)
+    mogrify.quality "#{quality}"
+    mogrify << '-unsharp' << '0.25x0.25+8+0.065'
+    mogrify << '-dither' << 'None'
+    mogrify << '-posterize' << '136'
+    mogrify << '-define' << 'jpeg:fancy-upsampling=off'
+    mogrify << '-define' << 'png:compression-filter=5'
+    mogrify << '-define' << 'png:compression-level=9'
+    mogrify << '-define' << 'png:compression-strategy=1'
+    mogrify << '-define' << 'png:exclude-chunk=all'
+    mogrify << '-interlace' << 'none'
+    mogrify << '-colorspace' << 'sRGB'
+    mogrify.strip
+  end
+
+  def set_watermark(image, image_file, width, height)
+    Rails.application.config.neofiles.watermarker.(
+      image,
+      no_watermark: nowm?(image_file),
+      watermark_width: width,
+      watermark_height: height
+    )
+  end
+
 end
