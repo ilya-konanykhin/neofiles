@@ -52,10 +52,10 @@ class Neofiles::ImagesController < ActionController::Metal
     end
 
     crop_requested = Neofiles.crop_requested? params
-    validate_size = image_file.width > width || image_file.height > height if width && height
+    need_resize_without_crop = width && height && (image_file.width > width || image_file.height > height)
 
     image.combine_options do |mogrify|
-      resize_image(mogrify, width, height, crop_requested, validate_size) if width && height
+      resize_image(mogrify, width, height, crop_requested, need_resize_without_crop) if width && height
       compress_image(mogrify, quality) if quality
     end
 
@@ -63,7 +63,8 @@ class Neofiles::ImagesController < ActionController::Metal
     PngQuantizator::Image.new(image.path).quantize! if options[:type] == 'image/png' && quality && quality < 75
 
     # set watermark
-    width, height = image_file.width, image_file.height unless validate_size
+    width, height = image_file.width, image_file.height if !crop_requested && !need_resize_without_crop
+
     data = set_watermark(image, image_file, width, height)
 
     # stream image headers & bytes
@@ -96,12 +97,12 @@ class Neofiles::ImagesController < ActionController::Metal
     end
   end
 
-  def resize_image(mogrify, width, height, crop_requested, validate_size)
+  def resize_image(mogrify, width, height, crop_requested, need_resize_without_crop)
     if crop_requested
       mogrify.resize "#{width}x#{height}^"
       mogrify.gravity 'center'
       mogrify.extent "#{width}x#{height}"
-    elsif validate_size
+    elsif need_resize_without_crop
       mogrify.resize "#{width}x#{height}"
     end
   end
