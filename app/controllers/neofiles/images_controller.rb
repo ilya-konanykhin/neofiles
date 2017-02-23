@@ -1,3 +1,5 @@
+require 'png_quantizator'
+
 # Special controller for serving images from the database via single action #show.
 #
 class Neofiles::ImagesController < ActionController::Metal
