@@ -21,9 +21,10 @@ class Neofiles::ImagesController < ActionController::Metal
   #   format  - resize image to no more than that size, example: '100x200'
   #   crop    - if '1' and params[:format] is present, then cut image sides if its aspect ratio differs from
   #             params[:format] (otherwise image aspect ration will be preserved)
-  #   quality - output JPEG quality, integer from 1 till 100 (forces JPEG output, otherwise image type is preserved)
+  #   quality - output quality, integer from 1 till 100 for JPEG input, default is 75
+  #             for PNG input any value less than 75 triggers lossless compression using pngquant library
   #   nowm    - force returned image to not contain watermark - user must be admin or 403 Forbidden response is returned
-  #             @see #admin_or_die
+  #             @see #admin_or_die (also this removes the default quality to let admins download image originals)
   #
   # Maximum allowed format dimensions are set via Rails.application.config.neofiles.image_max_crop_width/height.
   #
@@ -60,7 +61,7 @@ class Neofiles::ImagesController < ActionController::Metal
     end
 
     # use pngquant when quality less than 75
-    PngQuantizator::Image.new(image.path).quantize! if options[:type] == 'image/png' && quality && quality < 75
+    ::PngQuantizator::Image.new(image.path).quantize! if options[:type] == 'image/png' && quality && quality < 75
 
     # set watermark
     width, height = image_file.width, image_file.height if !crop_requested && !need_resize_without_crop
@@ -97,6 +98,7 @@ class Neofiles::ImagesController < ActionController::Metal
     end
   end
 
+  # Fill mogrify command pipe with resize commands
   def resize_image(mogrify, width, height, crop_requested, need_resize_without_crop)
     if crop_requested
       mogrify.resize "#{width}x#{height}^"
@@ -107,7 +109,8 @@ class Neofiles::ImagesController < ActionController::Metal
     end
   end
 
-  #More information: https://www.smashingmagazine.com/2015/06/efficient-image-resizing-with-imagemagick/
+  # Fill mogrify command pipe with compression commands for JPEG and PNG
+  # More information: https://www.smashingmagazine.com/2015/06/efficient-image-resizing-with-imagemagick/
   def compress_image(mogrify, quality)
     mogrify.quality "#{quality}"
     mogrify << '-unsharp' << '0.25x0.25+8+0.065'
@@ -123,6 +126,7 @@ class Neofiles::ImagesController < ActionController::Metal
     mogrify.strip
   end
 
+  # Place watermark on the image, if needed
   def set_watermark(image, image_file, width, height)
     Rails.application.config.neofiles.watermarker.(
       image,

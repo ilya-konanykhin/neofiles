@@ -76,12 +76,16 @@ Add Neofiles and its dependencies to your gemfile:
 gem 'neofiles'
 gem 'ruby-imagespec', git: 'git://github.com/dim/ruby-imagespec.git'
 gem 'mini_magick', '3.7.0'
+gem 'png_quantizator', '0.2.1'
 ```
 
 ***ruby-imagespec*** is needed to get an image file dimensions & content type.
 
 ***mini_magick*** does resizing & watermarking. Actually it is a lightweight wrapper around command-line utility
 ImageMagick, which must be installed also. Refer to the gem's description for installation instructions.
+
+***png_quantizator*** does lossless PNG compression. Actually it is a lightweight wrapper around command-line utility
+Pngquant, which must be installed also. Refer to the gem's description for installation instructions.
 
 Also, you must have installed MongoDB with its default driver ***mongoid*** (5 version at least) and Rails framework
 with HAML templating engine. By default the gem needs `neofiles` mongoid client defined in `config/mongoid.yml`, which
