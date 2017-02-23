@@ -117,7 +117,7 @@ class Neofiles::ImagesController < ActionController::Metal
     mogrify.quality "#{quality}"
     mogrify << '-unsharp' << '0.25x0.25+8+0.065'
     mogrify << '-dither' << 'None'
-    mogrify << '-posterize' << '136'
+    #mogrify << '-posterize' << '136' # posterize slows down imagamagick extremely in some env due to buggy libgomp1
     mogrify << '-define' << 'jpeg:fancy-upsampling=off'
     mogrify << '-define' << 'png:compression-filter=5'
     mogrify << '-define' << 'png:compression-level=9'
