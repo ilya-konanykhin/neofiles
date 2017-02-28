@@ -57,18 +57,19 @@ class Neofiles::ImagesController < ActionController::Metal
     crop_requested = Neofiles.crop_requested? params
     need_resize_without_crop = width && height && (image_file.width > width || image_file.height > height)
 
-    image.combine_options do |mogrify|
+    # set watermark
+    width, height = image_file.width, image_file.height if !crop_requested && !need_resize_without_crop
+    image_with_watermark = set_watermark(image, image_file, width, height)
+
+    image_with_watermark.combine_options do |mogrify|
       resize_image(mogrify, width, height, crop_requested, need_resize_without_crop) if width && height
       compress_image(mogrify, quality) if quality
     end
 
     # use pngquant when quality less than 75
-    ::PngQuantizator::Image.new(image.path).quantize! if options[:type] == 'image/png' && quality && quality < 75
+    ::PngQuantizator::Image.new(image_with_watermark.path).quantize! if options[:type] == 'image/png' && quality && quality < 75
 
-    # set watermark
-    width, height = image_file.width, image_file.height if !crop_requested && !need_resize_without_crop
-
-    data = set_watermark(image, image_file, width, height)
+    data = image_with_watermark.to_blob
 
     # stream image headers & bytes
     send_file_headers! options
