@@ -57,19 +57,19 @@ class Neofiles::ImagesController < ActionController::Metal
     crop_requested = Neofiles.crop_requested? params
     need_resize_without_crop = width && height && (image_file.width > width || image_file.height > height)
 
-    # set watermark
-    width, height = image_file.width, image_file.height if !crop_requested && !need_resize_without_crop
-    image_with_watermark = set_watermark(image, image_file, width, height)
+    image.combine_options('convert') do |convert|
+      resize_image(convert, width, height, crop_requested, need_resize_without_crop) if width && height
+      # set watermark
+      width, height = image_file.width, image_file.height if !crop_requested && !need_resize_without_crop
+      add_watermark(convert, image, nowm?(image_file), width, height)
 
-    image_with_watermark.combine_options do |mogrify|
-      resize_image(mogrify, width, height, crop_requested, need_resize_without_crop) if width && height
-      compress_image(mogrify, quality) if quality
+      compress_image(convert, quality) if quality
     end
 
     # use pngquant when quality less than 75
-    ::PngQuantizator::Image.new(image_with_watermark.path).quantize! if options[:type] == 'image/png' && quality && quality < 75
+    ::PngQuantizator::Image.new(image.path).quantize! if options[:type] == 'image/png' && quality && quality < 75
 
-    data = image_with_watermark.to_blob
+    data = image.to_blob
 
     # stream image headers & bytes
     send_file_headers! options
@@ -101,42 +101,32 @@ class Neofiles::ImagesController < ActionController::Metal
     end
   end
 
-  # Fill mogrify command pipe with resize commands
-  def resize_image(mogrify, width, height, crop_requested, need_resize_without_crop)
+  # Fill convert command pipe with resize commands
+  def resize_image(convert, width, height, crop_requested, need_resize_without_crop)
     if crop_requested
-      mogrify.resize "#{width}x#{height}^"
-      mogrify.gravity 'center'
-      mogrify.extent "#{width}x#{height}"
+      convert.resize "#{width}x#{height}^"
+      convert.gravity 'center'
+      convert.extent "#{width}x#{height}"
     elsif need_resize_without_crop
-      mogrify.resize "#{width}x#{height}"
+      convert.resize "#{width}x#{height}"
     end
   end
 
-  # Fill mogrify command pipe with compression commands for JPEG and PNG
+  # Fill convert command pipe with compression commands for JPEG and PNG
   # More information: https://www.smashingmagazine.com/2015/06/efficient-image-resizing-with-imagemagick/
-  def compress_image(mogrify, quality)
-    mogrify.quality "#{quality}"
-    mogrify << '-unsharp' << '0.25x0.25+8+0.065'
-    mogrify << '-dither' << 'None'
-    #mogrify << '-posterize' << '136' # posterize slows down imagamagick extremely in some env due to buggy libgomp1
-    mogrify << '-define' << 'jpeg:fancy-upsampling=off'
-    mogrify << '-define' << 'png:compression-filter=5'
-    mogrify << '-define' << 'png:compression-level=9'
-    mogrify << '-define' << 'png:compression-strategy=1'
-    mogrify << '-define' << 'png:exclude-chunk=all'
-    mogrify << '-interlace' << 'none'
-    mogrify << '-colorspace' << 'sRGB'
-    mogrify.strip
-  end
-
-  # Place watermark on the image, if needed
-  def set_watermark(image, image_file, width, height)
-    Rails.application.config.neofiles.watermarker.(
-      image,
-      no_watermark: nowm?(image_file),
-      watermark_width: width,
-      watermark_height: height
-    )
+  def compress_image(convert, quality)
+    convert.quality "#{quality}"
+    convert << '-unsharp' << '0.25x0.25+8+0.065'
+    convert << '-dither' << 'None'
+    #convert << '-posterize' << '136' # posterize slows down imagamagick extremely in some env due to buggy libgomp1
+    convert << '-define' << 'jpeg:fancy-upsampling=off'
+    convert << '-define' << 'png:compression-filter=5'
+    convert << '-define' << 'png:compression-level=9'
+    convert << '-define' << 'png:compression-strategy=1'
+    convert << '-define' << 'png:exclude-chunk=all'
+    convert << '-interlace' << 'none'
+    convert << '-colorspace' << 'sRGB'
+    convert.strip
   end
 
 end
