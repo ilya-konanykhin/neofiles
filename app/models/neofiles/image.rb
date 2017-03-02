@@ -93,6 +93,7 @@ class Neofiles::Image < Neofiles::File
     ensure
       tempfile.close
       tempfile.unlink
+      image.destroy! #delete mini_magick tempfile
     end
   end
 
