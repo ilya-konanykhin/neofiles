@@ -52,7 +52,11 @@ module Neofiles
       image_file_height = image_file[:height]
     end
 
+    # no input, terminate
     return if image_file_width.blank? || image_file_height.blank?
+
+    # image fits into requested dimensions, no resizing will occur
+    return image_file_width, image_file_height if image_file_width <= width && image_file_height <= height
 
     # ... construct request ...
     command = MiniMagick::CommandBuilder.new(:convert)            # convert input file...
