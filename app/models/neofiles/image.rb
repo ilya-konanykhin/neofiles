@@ -93,8 +93,10 @@ class Neofiles::Image < Neofiles::File
     ensure
       tempfile.close
       tempfile.unlink
-      image.destroy! #delete mini_magick tempfile
     end
+
+  ensure
+    image.try :destroy! #delete mini_magick tempfile
   end
 
   # Return array with width & height decorated with singleton function to_s returning 'WxH' string.
