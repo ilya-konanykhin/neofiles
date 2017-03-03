@@ -85,7 +85,7 @@ class Neofiles::ImagesController < ActionController::Metal
     self.content_type = 'text/plain; charset=utf-8'
     self.status = 403
   ensure
-    image.destroy! #delete mini_magick tempfile
+    image.try :destroy! #delete mini_magick tempfile
   end
 
 
