@@ -54,6 +54,7 @@ class Neofiles::AdminController < ApplicationController
     @disabled       = request[:disabled].present? && request[:disabled] != '0'
     @multiple       = request[:multiple].present? && request[:multiple] != '0'
     @with_desc      = request[:with_desc].present? && request[:with_desc] != '0'
+    @no_wm          = request[:no_wm].present? && request[:no_wm] != '0'
     @error        ||= ''
 
     if fake_request
@@ -87,6 +88,7 @@ class Neofiles::AdminController < ApplicationController
       file_class = Neofiles::File.class_by_file_object(uploaded_file)
       file = file_class.new do |f|
         f.description = data[:description].presence || old_file.try(:description)
+        f.no_wm = data[:no_wm].presence || false
         f.file = uploaded_file
       end
 
