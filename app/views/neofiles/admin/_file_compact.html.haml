@@ -73,7 +73,7 @@
   = hidden_field_tag 'neofiles[multiple]',      multiple      ? 1 : 0,                        common_options
   = hidden_field_tag 'neofiles[with_desc]',     with_desc     ? 1 : 0,                        common_options
   - if no_wm
-    = hidden_field_tag 'neofiles[no_wm]',       no_wm     ? 1 : 0,                        common_options
+    = hidden_field_tag 'neofiles[no_wm]', 1, common_options
 
   = file_field_tag 'neofiles[file][]', id: nil, class: 'neofiles-image-compact-file', disabled: disabled, multiple: multiple && !file
 

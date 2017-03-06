@@ -33,6 +33,7 @@ class Neofiles::AdminController < ApplicationController
   #   request[:disabled]      - only show file, not allow anything to be edited (default '0')
   #   request[:multiple]      - allow uploading of multiple files at once (default '0')
   #   request[:with_desc]     - show short file description (default '0')
+  #   request[:no_wm]         - disable adding a watermark (default '1')
   #
   # Parameters clear_remove & append_create are used to organize Albums — technically a collection of single files.
   #
@@ -88,7 +89,7 @@ class Neofiles::AdminController < ApplicationController
       file_class = Neofiles::File.class_by_file_object(uploaded_file)
       file = file_class.new do |f|
         f.description = data[:description].presence || old_file.try(:description)
-        f.no_wm = data[:no_wm].presence || false
+        f.no_wm = data[:no_wm].present? && data[:no_wm] != '0'
         f.file = uploaded_file
       end
 
