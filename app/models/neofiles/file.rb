@@ -44,7 +44,7 @@ class Neofiles::File
 
   include Mongoid::Document
   include Mongoid::Timestamps
-  include Neofiles::DataStore::Mongo::FileHelper
+  #include Neofiles::DataStore::Mongo::FileHelper
 
   store_in collection: Rails.application.config.neofiles.mongo_files_collection, client: Rails.application.config.neofiles.mongo_client
 
@@ -59,6 +59,11 @@ class Neofiles::File
 
   before_save :save_file
   after_save :nullify_unpersisted_file
+
+  DATA_STORE_NAMES = {
+      'amazon_s3' => Neofiles::DataStore::AmazonS3,
+      'mongo'     => Neofiles::DataStore::Mongo
+  }
 
   # Chunks bytes concatenated, that is the whole file content.
   def data
@@ -109,9 +114,8 @@ class Neofiles::File
   # File length and md5 hash are computed automatically.
   def save_file
     if @file
-      data_store_object = self.class.default_data_store.new @file
-      data_store_object.write
-
+      data_store_object = self.class.default_data_store.new id
+      data_store_object.write @file
       self.length = data_store_object.length
       self.md5    = data_store_object.md5
     end
@@ -196,10 +200,11 @@ class Neofiles::File
   end
 
   def self.data_stores
-    [Neofiles::DataStore::Mongo, Neofiles::DataStore::AmazonS3]
+    stores = Rails.application.config.neofiles.data_stores
+    stores.is_a?(Array) ? stores.map { |store| DATA_STORE_NAMES[store] } : DATA_STORE_NAMES[stores]
   end
 
   def self.default_data_store
-    Neofiles::DataStore::AmazonS3
+    DATA_STORE_NAMES[Rails.application.config.neofiles.default_data_store]
   end
 end
