@@ -44,7 +44,7 @@ class Neofiles::File
 
   include Mongoid::Document
   include Mongoid::Timestamps
-  #include Neofiles::DataStore::Mongo::FileHelper
+  include Neofiles::DataStore::Mongo::FileHelper
 
   store_in collection: Rails.application.config.neofiles.mongo_files_collection, client: Rails.application.config.neofiles.mongo_client
 
@@ -60,14 +60,9 @@ class Neofiles::File
   before_save :save_file
   after_save :nullify_unpersisted_file
 
-  DATA_STORE_NAMES = {
-      'amazon_s3' => Neofiles::DataStore::AmazonS3,
-      'mongo'     => Neofiles::DataStore::Mongo
-  }
-
   # Chunks bytes concatenated, that is the whole file content.
   def data
-    self.class.data_stores.each do |store|
+    self.class.read_data_stores.each do |store|
       begin
         return store.find(id).data
       rescue Neofiles::DataStore::NotFoundException
@@ -114,10 +109,17 @@ class Neofiles::File
   # File length and md5 hash are computed automatically.
   def save_file
     if @file
-      data_store_object = self.class.default_data_store.new id
-      data_store_object.write @file
-      self.length = data_store_object.length
-      self.md5    = data_store_object.md5
+      self.class.write_data_stores.each do |store|
+        begin
+          data_store_object = store.new id
+          data_store_object.write @file
+          self.length = data_store_object.length
+          self.md5    = data_store_object.md5
+        rescue => e
+          raise e
+          next
+        end
+      end
     end
   end
 
@@ -199,12 +201,21 @@ class Neofiles::File
     class_by_file_name(extract_basename(file_object))
   end
 
-  def self.data_stores
-    stores = Rails.application.config.neofiles.data_stores
-    stores.is_a?(Array) ? stores.map { |store| DATA_STORE_NAMES[store] } : DATA_STORE_NAMES[stores]
+  def self.read_data_stores
+    get_stores_class_name Rails.application.config.neofiles.read_data_stores
   end
 
-  def self.default_data_store
-    DATA_STORE_NAMES[Rails.application.config.neofiles.default_data_store]
+  def self.write_data_stores
+    get_stores_class_name Rails.application.config.neofiles.write_data_stores
   end
+
+  # return array with names for each store
+  def self.get_stores_class_name(stores)
+    if stores.is_a?(Array)
+      stores.map { |store| Neofiles::DataStore.const_get(store.camelize) }
+    else
+      [Neofiles::DataStore.const_get(stores.camelize)]
+    end
+  end
+
 end

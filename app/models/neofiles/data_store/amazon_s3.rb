@@ -33,18 +33,12 @@ class Neofiles::DataStore::AmazonS3
 
   def get_object
     begin
-      if Rails.cache.exist? cache_key
-        s3_object = Rails.cache.fetch cache_key
-      else
-        s3_object = client.get_object(
+      @s3_object ||= Rails.cache.fetch cache_key, expires_in: 1.hour do
+        client.get_object(
             bucket: bucket_name,
             key: file_path
         )
-
-        Rails.cache.write cache_key, s3_object, expires_in: 1.hour
       end
-
-      s3_object
     rescue Aws::S3::Errors::ServiceError
       nil
     end
@@ -52,18 +46,6 @@ class Neofiles::DataStore::AmazonS3
 
   def data
     @data ||= get_object.body.read
-  end
-
-  def length
-    @length ||= data.length
-  end
-
-  def md5
-    @md5 ||= begin
-      md5 = Digest::MD5.new
-      md5 << data
-      md5.hexdigest
-    end
   end
 
   def write(data)
@@ -78,7 +60,7 @@ class Neofiles::DataStore::AmazonS3
     )
 
     @data = data.is_a?(String) ? data : data.read
-    @length = data.length
+    @length = @data.length
     md5 = Digest::MD5.new
     md5 << @data
     @md5 = md5.hexdigest
@@ -94,7 +76,7 @@ class Neofiles::DataStore::AmazonS3
   end
 
   def cache_key
-    ['amazon_s3_object', @id, bucket_name, file_path]
+    ['Neofiles::DataStore::AmazonS3', @id, bucket_name, file_path]
   end
 
   def bucket_name
@@ -103,7 +85,7 @@ class Neofiles::DataStore::AmazonS3
 
   def client
     begin
-      Aws::S3::Client.new(
+      @client ||= Aws::S3::Client.new(
           region: Rails.application.config.neofiles.amazon_s3_region,
           credentials: Aws::Credentials.new(
               Rails.application.config.neofiles.amazon_s3_api,
