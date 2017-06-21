@@ -33,7 +33,6 @@ class Neofiles::DataStore::AmazonS3
 
   def get_object
     begin
-      @s3_object ||= Rails.cache.fetch cache_key, expires_in: 1.hour do
         client.get_object(
             bucket: bucket_name,
             key: file_path
