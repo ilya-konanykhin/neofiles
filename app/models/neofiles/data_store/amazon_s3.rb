@@ -49,10 +49,6 @@ class Neofiles::DataStore::AmazonS3
   end
 
   def write(data)
-    unless client.list_buckets.buckets.map(&:name).include?(bucket_name)
-      client.create_bucket(bucket: bucket_name)
-    end
-
     client.put_object(
         body: data,
         bucket: bucket_name,
