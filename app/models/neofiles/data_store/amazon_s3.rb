@@ -16,7 +16,7 @@ class Neofiles::DataStore::AmazonS3
 
   def self.find(id)
     s3_object = new(id)
-    if s3_object.get_object
+    if s3_object.data
       s3_object
     else
       raise Neofiles::DataStore::NotFoundException
@@ -31,19 +31,17 @@ class Neofiles::DataStore::AmazonS3
     @id = id
   end
 
-  def get_object
+  def data
     begin
-      client.get_object(
-          bucket: bucket_name,
-          key: file_path
-      )
+      @data ||= Rails.cache.fetch cache_key, expires_in: 1.hour do
+        client.get_object(
+            bucket: bucket_name,
+            key: file_path
+        ).body.read
+      end
     rescue Aws::S3::Errors::ServiceError
       nil
     end
-  end
-
-  def data
-    @data ||= get_object.body.read
   end
 
   def write(data)
@@ -70,7 +68,7 @@ class Neofiles::DataStore::AmazonS3
   end
 
   def cache_key
-    ['Neofiles::DataStore::AmazonS3', @id, bucket_name, file_path]
+    ['neofiles_amazon_s3_data_stores', @id, bucket_name, file_path]
   end
 
   def bucket_name
