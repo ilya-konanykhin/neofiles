@@ -33,11 +33,10 @@ class Neofiles::DataStore::AmazonS3
 
   def get_object
     begin
-        client.get_object(
-            bucket: bucket_name,
-            key: file_path
-        )
-      end
+      client.get_object(
+          bucket: bucket_name,
+          key: file_path
+      )
     rescue Aws::S3::Errors::ServiceError
       nil
     end
