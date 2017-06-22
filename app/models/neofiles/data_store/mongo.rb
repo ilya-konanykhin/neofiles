@@ -23,7 +23,7 @@ class Neofiles::DataStore::Mongo
   end
 
   def data
-    @data ||= chunks.pluck(&:data).map(&:data).join
+    @data ||= chunks.pluck(:data).map(&:data).join
   end
 
   def length
