@@ -53,12 +53,18 @@ class Neofiles::DataStore::AmazonS3
   end
 
   def write(data)
+    if data.is_a? Tempfile
+      data.flush
+      data.rewind
+      data = data.read
+    end
+
     client.put_object(
         body: data,
         bucket: bucket_name,
         key: s3_key
     )
-    @data = data.is_a?(File) ? data.read : data
+    @data = data
   end
 
 
