@@ -32,15 +32,23 @@ class Neofiles::DataStore::AmazonS3
   end
 
   def data
-    begin
-      @data ||= Rails.cache.fetch cache_key, expires_in: 1.hour do
-        client.get_object(
-            bucket: bucket_name,
-            key: file_path
-        ).body.read
-      end
-    rescue Aws::S3::Errors::ServiceError
-      nil
+    @data ||= client.get_object(
+          bucket: bucket_name,
+          key: s3_key
+      ).body.read
+  rescue Aws::S3::Errors::ServiceError
+    nil
+  end
+
+  def length
+    @length ||= data.length
+  end
+
+  def md5
+    @md5 ||= begin
+      md5 = Digest::MD5.new
+      md5 << data
+      md5.hexdigest
     end
   end
 
@@ -48,27 +56,18 @@ class Neofiles::DataStore::AmazonS3
     client.put_object(
         body: data,
         bucket: bucket_name,
-        key: file_path
+        key: s3_key
     )
-
-    @data = data.is_a?(String) ? data : data.read
-    @length = @data.length
-    md5 = Digest::MD5.new
-    md5 << @data
-    @md5 = md5.hexdigest
+    @data = data.is_a?(File) ? data.read : data
   end
 
 
 
   private
 
-  def file_path
+  def s3_key
     object_id = @id.to_s
     object_id[0..2] + '/' + object_id[3..4] + '/' + object_id
-  end
-
-  def cache_key
-    ['neofiles_amazon_s3_data_stores', @id, bucket_name, file_path]
   end
 
   def bucket_name
@@ -76,17 +75,15 @@ class Neofiles::DataStore::AmazonS3
   end
 
   def client
-    begin
-      @client ||= Aws::S3::Client.new(
-          region: Rails.application.config.neofiles.amazon_s3_region,
-          credentials: Aws::Credentials.new(
-              Rails.application.config.neofiles.amazon_s3_api,
-              Rails.application.config.neofiles.amazon_s3_secret
-          )
-      )
-    rescue Aws::S3::Errors::ServiceError
-      nil
-    end
+    @client ||= Aws::S3::Client.new(
+        region: Rails.application.config.neofiles.amazon_s3_region,
+        credentials: Aws::Credentials.new(
+            Rails.application.config.neofiles.amazon_s3_api,
+            Rails.application.config.neofiles.amazon_s3_secret
+        )
+    )
+  rescue Aws::S3::Errors::ServiceError
+    nil
   end
 
 end

@@ -10,10 +10,8 @@ module Neofiles::DataStore::Mongo::FileHelper
       ids.each do |id|
         begin
           mongo_object = Neofiles::DataStore::Mongo.find id
-          amazon_object = Neofiles::DataStore::AmazonS3.new(id).data
-          if mongo_object && !amazon_object
-            Neofiles::DataStore::AmazonS3.new(id).write(mongo_object.data)
-          end
+          amazon_object = Neofiles::DataStore::AmazonS3.find(id) rescue nil
+          Neofiles::DataStore::AmazonS3.new(id).write(mongo_object.data) unless amazon_object
         rescue Neofiles::DataStore::NotFoundException
           next
         end

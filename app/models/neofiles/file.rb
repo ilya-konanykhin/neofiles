@@ -115,8 +115,8 @@ class Neofiles::File
           data_store_object.write @file
           self.length = data_store_object.length
           self.md5    = data_store_object.md5
-        rescue => e
-          raise e
+        rescue => ex
+          notify_airbrake(ex) if defined? notify_airbrake
           next
         end
       end
@@ -214,7 +214,7 @@ class Neofiles::File
     if stores.is_a?(Array)
       stores.map { |store| Neofiles::DataStore.const_get(store.camelize) }
     else
-      [Neofiles::DataStore.const_get(stores.camelize)]
+      get_stores_class_name [stores]
     end
   end
 
