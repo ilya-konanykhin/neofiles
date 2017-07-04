@@ -13,7 +13,8 @@ class Neofiles::FilesController < ActionController::Metal
     file = Neofiles::File.find params[:id]
 
     if file.is_a? Neofiles::Image
-      redirect_to neofiles_image_path(params) and return
+      options = params.values_at(:format, :crop, :quality)
+      redirect_to neofiles_image_path(options), status: 301 and return
     end
 
     send_file_headers!({
