@@ -13,7 +13,7 @@ class Neofiles::FilesController < ActionController::Metal
     file = Neofiles::File.find params[:id]
 
     if file.is_a? Neofiles::Image
-      options = params.values_at(:format, :crop, :quality)
+      options = params.except(:action, :controller, :id)
       redirect_to neofiles_image_path(options), status: 301 and return
     end
 
