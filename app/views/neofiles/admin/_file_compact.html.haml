@@ -22,25 +22,25 @@
         - if file.description.present?
           %p= file.description
 
-        %p= t 'neofiles.views.created_at', local_date: l(file.created_at, format: t('neofiles.views.local_date_format'))
+        %p= raw t 'neofiles.views.created_at', local_date: l(file.created_at, format: t('neofiles.views.local_date_format'))
 
         - file_options = []
         - if file.respond_to? :dimensions
           - file_options << "#{file.dimensions.join('×').html_safe} px"
         - file_options << "#{number_to_human_size file.length, precision: 0}"
         %p= file_options.join(', ')
-
+        
         - if file.owner_type.present? || file.owner_id.present?
           %p #{t 'neofiles.views.owner'}: #{file.owner_type}#{file.owner_id}
 
-        - if file.respond_to?(:no_wm) && !no_wm
+        - if file.respond_to? :no_wm
           %p.checkbox
             - uniq_name = "#{widget_id}_no_wm"
             %label(for=uniq_name)
               = check_box_tag uniq_name, '1', file.no_wm, class: 'neofiles-image-compact-nowm', data: {update_url: neofiles_file_update_path}
               = t 'neofiles.views.no_wm'
 
-      %a(href="#" tabindex="0" class="neofiles-image-compact-options" data-toggle="popover" data-trigger="click" data-placement="top" data-html="true" data-animation="false" data-title="#{file.filename}" data-content=options_form)
+      %a(href="#" tabindex="0" class="neofiles-image-compact-options" data-toggle="popover" data-trigger="click" data-placement="top" data-html="true" data-animation="false" data-title="#{file.filename}" data-content="#{options_form}")
         %i.icon-wrench.glyphicon.glyphicon-wrench
 
     - if with_desc
@@ -72,8 +72,6 @@
   = hidden_field_tag 'neofiles[append_create]', file          ? 0 : (append_create ? 1 : 0),  common_options
   = hidden_field_tag 'neofiles[multiple]',      multiple      ? 1 : 0,                        common_options
   = hidden_field_tag 'neofiles[with_desc]',     with_desc     ? 1 : 0,                        common_options
-  - if no_wm
-    = hidden_field_tag 'neofiles[no_wm]', 1, common_options
 
   = file_field_tag 'neofiles[file][]', id: nil, class: 'neofiles-image-compact-file', disabled: disabled, multiple: multiple && !file
 
@@ -83,5 +81,5 @@
   });
 
 - if append_create and file
-  = render partial: 'file_compact', locals: {file: nil, input_name: input_name, widget_id: widget_id + '_ap', clean_remove: clean_remove, append_create: true, error: nil, disabled: disabled, multiple: multiple, with_desc: with_desc, no_wm: no_wm}
+  = render partial: 'file_compact', locals: {file: nil, input_name: input_name, widget_id: widget_id + '_ap', clean_remove: clean_remove, append_create: true, error: nil, disabled: disabled, multiple: multiple, with_desc: with_desc}
 
