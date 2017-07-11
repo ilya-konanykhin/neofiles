@@ -73,7 +73,7 @@ class Neofiles::DataStore::AmazonS3
 
   def s3_key
     object_id = @id.to_s
-    object_id[0..2] + '/' + object_id[3..4] + '/' + object_id
+    object_id[0..1] + '/' + object_id[2..4] + '/' + object_id
   end
 
   def bucket_name
