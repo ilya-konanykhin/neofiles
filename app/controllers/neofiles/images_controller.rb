@@ -61,7 +61,7 @@ class Neofiles::ImagesController < ActionController::Metal
       resize_image convert, width, height, crop_requested, need_resize_without_crop if resizing
 
       unless nowm?(image_file)
-        wm_width, wm_height = Neofiles::resized_image_dimensions image_file, width, height, params
+        wm_width, wm_height = resizing ? Neofiles::resized_image_dimensions(image_file, width, height, params) : [image_file.width, image_file.height]
         add_watermark convert, image, wm_width, wm_height if wm_width && wm_height
       end
 

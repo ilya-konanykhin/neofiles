@@ -33,6 +33,7 @@ class Neofiles::AdminController < ApplicationController
   #   request[:disabled]      - only show file, not allow anything to be edited (default '0')
   #   request[:multiple]      - allow uploading of multiple files at once (default '0')
   #   request[:with_desc]     - show short file description (default '0')
+  #   request[:no_wm]         - disable adding a watermark  (default '0')
   #
   # Parameters clear_remove & append_create are used to organize Albums — technically a collection of single files.
   #
@@ -54,6 +55,7 @@ class Neofiles::AdminController < ApplicationController
     @disabled       = request[:disabled].present? && request[:disabled] != '0'
     @multiple       = request[:multiple].present? && request[:multiple] != '0'
     @with_desc      = request[:with_desc].present? && request[:with_desc] != '0'
+    @no_wm          = request[:no_wm].present? && request[:no_wm] != '0'
     @error        ||= ''
 
     if fake_request
@@ -87,6 +89,7 @@ class Neofiles::AdminController < ApplicationController
       file_class = Neofiles::File.class_by_file_object(uploaded_file)
       file = file_class.new do |f|
         f.description = data[:description].presence || old_file.try(:description)
+        f.no_wm = data[:no_wm].present? && data[:no_wm] != '0' if f.respond_to? :no_wm
         f.file = uploaded_file
       end
 
@@ -125,7 +128,7 @@ class Neofiles::AdminController < ApplicationController
     file.is_deleted = true
     file.save!
 
-    return render text: '' if data[:clean_remove].present? && data[:clean_remove] != '0'
+    return render plain: '' if data[:clean_remove].present? && data[:clean_remove] != '0'
 
     redirect_to neofiles_file_compact_path(data.merge(id: nil))
   end
@@ -137,7 +140,7 @@ class Neofiles::AdminController < ApplicationController
   def file_update
     file, data = find_file_and_data
     file.update data.slice(:description, :no_wm)
-    render text: '', layout: false
+    render plain: '', layout: false
   end
 
   # Neofiles knows how to play with Redactor.js and this method persists files uploaded via this WYSIWYG editor.
@@ -158,7 +161,7 @@ class Neofiles::AdminController < ApplicationController
       f.owner_id    = owner_id
       f.description = request[:description].presence
 
-      f.no_wm = true if f.respond_to?(:no_wm)
+      f.no_wm = true if f.respond_to? :no_wm
       f.file  = file
     end
 
