@@ -12,7 +12,8 @@
       = error
 
   - if file
-    .neofiles-image-compact-view= file.admin_compact_view self
+    .neofiles-image-compact-view
+      = neofiles_admin_compact(file)
 
     %a(href=neofiles_file_remove_path class="neofiles-image-compact-remove")
       %i.icon-remove.glyphicon.glyphicon-remove

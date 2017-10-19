@@ -22,13 +22,6 @@ class Neofiles::Swf < Neofiles::File
     dim
   end
 
-  # Overrides parent "admin views" with square 100x100 Flash thumbnail.
-  def admin_compact_view(view_context)
-    view_context.neofiles_link self, view_context.tag(:img, src: view_context.image_path('neofiles/swf-thumb-100x100.png')), target: '_blank'
-  end
-
-
-
   private
 
   # Store dimensions on #save.

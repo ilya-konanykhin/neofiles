@@ -187,12 +187,6 @@ class Neofiles::File
     @file = nil
   end
 
-  # Representation of file in admin "compact" mode, @see Neofiles::AdminController#file_compact.
-  # To be redefined by descendants.
-  def admin_compact_view(template)
-    template.neofiles_link self, nil, target: '_blank'
-  end
-
   # Yield block with IO stream made from input arg, which can be file name or other IO readable object.
   def self.reading(arg, &block)
     if arg.respond_to?(:read)

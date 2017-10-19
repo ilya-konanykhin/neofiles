@@ -65,7 +65,7 @@ module Neofiles::NeofilesHelper
     url = h(url)
     click_tag = h(click_tag)
 
-    result = <<HTML
+    result = <<-HTML
       <object classid="clsid:D27CDB6E-AE6D-11cf-96B8-444553540000" width="#{width}" height="#{height}" id="#{id}">
         <param name="movie" value="#{url}" />
         <param name="bgcolor" value="#{bgcolor}" />
@@ -94,7 +94,7 @@ module Neofiles::NeofilesHelper
       <script type="text/javascript">
         try { swfobject.registerObject("#{id}", "9.0.0"); } catch(e) {}
 		  </script>
-HTML
+    HTML
     result.html_safe
   end
 
@@ -146,7 +146,12 @@ HTML
     neofiles_cdn_prefix(*args) + neofiles_image_path(*args)
   end
 
-
+  # Representation of file in admin "compact" mode, @see Neofiles::AdminController#file_compact.
+  # Each Neofiles::File class descendant must have a «compact» view template
+  # located in app/views/neofiles/compact/_$CLASSNAME.slim, e.g. _image.slim
+  def neofiles_admin_compact(file)
+    render path_to_compact_view(file), file: file
+  end
 
   private
 
@@ -184,5 +189,9 @@ HTML
     else
       [nil, nil]
     end
+  end
+
+  def path_to_compact_view(file)
+    file.class.name.underscore.gsub(/\//, '/compact/')
   end
 end

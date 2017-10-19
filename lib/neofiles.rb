@@ -79,15 +79,13 @@ module Neofiles
     params[:crop].present? and params[:crop] != '0'
   end
 
-  # Is request params hash contains quality request?
-  def quality_requested?(params)
-    !!quality_requested(params)
-  end
-
   # The quality value requested, from request params hash.
   def quality_requested(params)
     params[:quality].to_i if params[:quality].present? and params[:quality] != '0'
   end
+
+  # Is request params hash contains quality request?
+  alias_method :quality_requested?, :quality_requested
 
   # Is current user considered "admin"? "Admin" means the user can fetch images w/o watermarks.
   def is_admin?(context)
