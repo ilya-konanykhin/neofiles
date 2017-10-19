@@ -146,11 +146,11 @@ module Neofiles::NeofilesHelper
     neofiles_cdn_prefix(*args) + neofiles_image_path(*args)
   end
 
-  # Representation of file in admin "compact" mode, @see Neofiles::AdminController#file_compact.
-  # Each Neofiles::File class descendant must have a «compact» view template
+  # Renders admin "compact" view template, @see Neofiles::AdminController#file_compact.
+  # Each Neofiles::File class descendant must have a "compact" view template
   # located in app/views/neofiles/compact/_$CLASSNAME.slim, e.g. _image.slim
-  def neofiles_admin_compact(file)
-    render path_to_compact_view(file), file: file
+  def neofiles_render_admin_compact_view(file)
+    render admin_view(file.class.name, :compact), file: file
   end
 
   private
@@ -191,7 +191,8 @@ module Neofiles::NeofilesHelper
     end
   end
 
-  def path_to_compact_view(file)
-    file.class.name.underscore.gsub(/\//, '/compact/')
+  # Returns path to admin view template by Neofiles::File class name and type
+  def admin_view(class_name, view_type)
+    class_name.underscore.gsub(/\//, "/#{view_type}/")
   end
 end
