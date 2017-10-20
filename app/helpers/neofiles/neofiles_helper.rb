@@ -146,13 +146,6 @@ module Neofiles::NeofilesHelper
     neofiles_cdn_prefix(*args) + neofiles_image_path(*args)
   end
 
-  # Renders admin "compact" view template, @see Neofiles::AdminController#file_compact.
-  # Each Neofiles::File class descendant must have a "compact" view template
-  # located in app/views/neofiles/compact/_$CLASSNAME.slim, e.g. _image.slim
-  def neofiles_render_admin_compact_view(file)
-    render admin_view(file.class.name, :compact), file: file
-  end
-
   private
 
   # Calculate dimensions of an image after resize applied, according to rules in Neofiles::ImagesController#show.
@@ -189,10 +182,5 @@ module Neofiles::NeofilesHelper
     else
       [nil, nil]
     end
-  end
-
-  # Returns path to admin view template by Neofiles::File class name and type
-  def admin_view(class_name, view_type)
-    class_name.underscore.gsub(/\//, "/#{view_type}/")
   end
 end
