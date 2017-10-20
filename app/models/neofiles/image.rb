@@ -108,13 +108,6 @@ class Neofiles::Image < Neofiles::File
     dim
   end
 
-  # Overrides parent "admin views" with square 100x100 thumbnail.
-  def admin_compact_view(template)
-    # _path instead of _url to keep admin session cookie which is lost when changing domains
-    url_method = Neofiles.is_admin?(template) ? :neofiles_image_nowm_path : :neofiles_image_path
-    template.neofiles_img_link self, 100, 100, {}, target: '_blank', href: template.send(url_method, self)
-  end
-
   # Set no_wm from HTML form (value is a string '1'/'0').
   def no_wm=(value)
     write_attribute :no_wm, value.is_a?(String) ? value == '1' : value

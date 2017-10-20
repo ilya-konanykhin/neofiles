@@ -1,0 +1,2 @@
+- url_method = Neofiles.is_admin?(self) ? :neofiles_image_nowm_path : :neofiles_image_path
+= neofiles_img_link file, 100, 100, {}, target: '_blank', href: send(url_method, file)
