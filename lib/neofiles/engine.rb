@@ -4,10 +4,13 @@ module Neofiles
     config.neofiles = ActiveSupport::OrderedOptions.new
 
     # mongo specific settings
-    config.neofiles.mongo_files_collection    = 'files.files'
-    config.neofiles.mongo_chunks_collection   = 'files.chunks'
-    config.neofiles.mongo_client              = 'neofiles'
-    config.neofiles.mongo_default_chunk_size  = 4.megabytes
+    config.neofiles.mongo_files_collection            = 'files.files'
+    config.neofiles.mongo_chunks_collection           = 'files.chunks'
+    config.neofiles.mongo_temp_chunks_collection      = 'files.temp_chunks'
+    config.neofiles.mongo_client                      = 'neofiles'
+    config.neofiles.mongo_default_chunk_size          = 4.megabytes
+    config.neofiles.mongo_temp_chunks_collection_size = 100.megabytes
+    config.neofiles.use_temp_storage                  = false
 
     # image related settings
     config.neofiles.image_rotate_exif     = true # rotate image, if exif contains orientation info
