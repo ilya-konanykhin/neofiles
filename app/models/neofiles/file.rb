@@ -45,6 +45,7 @@ class Neofiles::File
   include Mongoid::Document
   include Mongoid::Timestamps
   include Neofiles::DataStore::Mongo::FileHelper
+  include Neofiles::DataStore::TempMongo::FileHelper
 
   store_in collection: Rails.application.config.neofiles.mongo_files_collection, client: Rails.application.config.neofiles.mongo_client
 
@@ -56,13 +57,14 @@ class Neofiles::File
   field :owner_type, type: String
   field :owner_id, type: String
   field :is_deleted, type: Mongoid::Boolean
+  field :is_temp, type: Mongoid::Boolean, default: false
 
   before_save :save_file
   after_save :nullify_unpersisted_file
 
   # Chunks bytes concatenated, that is the whole file content.
   def data
-    self.class.read_data_stores.each do |store|
+    self.class.read_data_stores(is_temp).each do |store|
       begin
         return store.find(id).data
       rescue Neofiles::DataStore::NotFoundException
@@ -109,7 +111,9 @@ class Neofiles::File
   # File length and md5 hash are computed automatically.
   def save_file
     if @file
-      self.class.write_data_stores.each do |store|
+      self.is_temp = true if Rails.application.config.neofiles.use_temp_storage
+
+      self.class.write_data_stores(is_temp).each do |store|
         begin
           data_store_object = store.new id
           data_store_object.write @file
@@ -201,12 +205,14 @@ class Neofiles::File
     class_by_file_name(extract_basename(file_object))
   end
 
-  def self.read_data_stores
-    get_stores_class_name Rails.application.config.neofiles.read_data_stores
+  def self.read_data_stores(temp = false)
+    stores = temp ? Rails.application.config.neofiles.read_temp_data_stores : Rails.application.config.neofiles.read_data_stores
+    get_stores_class_name stores
   end
 
-  def self.write_data_stores
-    get_stores_class_name Rails.application.config.neofiles.write_data_stores
+  def self.write_data_stores(temp = false)
+    stores = temp ? Rails.application.config.neofiles.write_temp_data_stores : Rails.application.config.neofiles.write_data_stores
+    get_stores_class_name stores
   end
 
   # return array with names for each store
