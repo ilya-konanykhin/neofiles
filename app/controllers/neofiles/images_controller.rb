@@ -7,7 +7,6 @@ class Neofiles::ImagesController < ActionController::Metal
   class NotAdminException < Exception; end
 
   include ActionController::DataStreaming
-  include ActionController::RackDelegation
   include Neofiles::NotFound
 
   if defined?(Devise)

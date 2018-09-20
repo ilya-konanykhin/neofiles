@@ -9,7 +9,7 @@
 class Neofiles::AdminController < ApplicationController
 
   # TODO: remove this! it should be controlled on application side
-  skip_before_filter :verify_authenticity_token
+  skip_before_action :verify_authenticity_token
 
   # Build AJAX edit/upload form for a single file in compact way: small file thumbnail + misc buttons, like "delete",
   # "change options" etc.
@@ -114,7 +114,7 @@ class Neofiles::AdminController < ApplicationController
       raise ArgumentError.new(last_exception || (errors.empty? ? I18n.t('neofiles.file_not_passed') : errors.join("\n")))
     end
 
-    render text: result.join, layout: false
+    render plain: result.join, layout: false
   end
 
   # As we don't actually delete anything, this method only marks file as deleted.
@@ -128,7 +128,7 @@ class Neofiles::AdminController < ApplicationController
     file.is_deleted = true
     file.save!
 
-    return render text: '' if data[:clean_remove].present? && data[:clean_remove] != '0'
+    return render plain: '' if data[:clean_remove].present? && data[:clean_remove] != '0'
 
     redirect_to neofiles_file_compact_path(data.merge(id: nil))
   end
@@ -140,7 +140,7 @@ class Neofiles::AdminController < ApplicationController
   def file_update
     file, data = find_file_and_data
     file.update data.slice(:description, :no_wm)
-    render text: '', layout: false
+    render plain: '', layout: false
   end
 
   # Neofiles knows how to play with Redactor.js and this method persists files uploaded via this WYSIWYG editor.

@@ -22,7 +22,7 @@
         - if file.description.present?
           %p= file.description
 
-        %p= t 'neofiles.views.created_at', local_date: l(file.created_at, format: t('neofiles.views.local_date_format'))
+        %p= raw t 'neofiles.views.created_at', local_date: l(file.created_at, format: t('neofiles.views.local_date_format'))
 
         - file_options = []
         - if file.respond_to? :dimensions
@@ -40,7 +40,7 @@
               = check_box_tag uniq_name, '1', file.no_wm, class: 'neofiles-image-compact-nowm', data: {update_url: neofiles_file_update_path}
               = t 'neofiles.views.no_wm'
 
-      %a(href="#" tabindex="0" class="neofiles-image-compact-options" data-toggle="popover" data-trigger="click" data-placement="top" data-html="true" data-animation="false" data-title="#{file.filename}" data-content=options_form)
+      %a(href="#" tabindex="0" class="neofiles-image-compact-options" data-toggle="popover" data-trigger="click" data-placement="top" data-html="true" data-animation="false" data-title="#{file.filename}" data-content="#{options_form}")
         %i.icon-wrench.glyphicon.glyphicon-wrench
 
     - if with_desc
