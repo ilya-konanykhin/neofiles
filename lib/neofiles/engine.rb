@@ -23,15 +23,16 @@ module Neofiles
     # default watermarker — redefine to set special watermarking logic
     # by default, watermark only images larger than 300x300 with watermark at the bottom center, taken from file
     # /app/assets/images/neofiles/watermark.png
-    config.neofiles.watermarker = ->(image, no_watermark: false, watermark_width:, watermark_height:){
-      if watermark_width < 300 || watermark_height < 300 || no_watermark
-        return image.to_blob
-      end
+    config.neofiles.watermarker = ->(convert, _image, width, height) {
+      return if width < 300 || height < 300
 
-      image.composite(MiniMagick::Image.open(Rails.root.join('app', 'assets', 'images', 'neofiles', 'watermark.png'))) do |c|
-        c.gravity 'south'
-        c.geometry '200x+0+20'
-      end.to_blob
+      wm_path = Rails.root.join('app', 'assets', 'images', 'neofiles', 'watermark.png')
+      return unless ::File.exists?(wm_path)
+
+      convert << wm_path
+      convert.gravity 'south'
+      convert.geometry '200x+0+20'
+      convert.composite
     }
   end
 end
