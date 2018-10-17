@@ -1,4 +1,5 @@
 require 'neofiles/engine'
+require 'aspect_ratio'
 
 module Neofiles
   # Attach Neofiles specific routes in your routes.rb file:
@@ -33,9 +34,7 @@ module Neofiles
   #   image_file      - Neofiles::Image, ID or Hash
   #   width, height   - max width and height after resize
   #
-  def resized_image_dimensions(image_file, width, height, options = {})
-    enlarge = options.delete(:enlarge) || true
-
+  def resized_image_dimensions(image_file, width, height)
     if image_file.is_a? Neofiles::Image
       image_file_width = image_file.width
       image_file_height = image_file.height
@@ -44,32 +43,7 @@ module Neofiles
       image_file_height = image_file[:height]
     end
 
-    if image_file_width && image_file_height
-      width             = BigDecimal(width)
-      height            = BigDecimal(height)
-      image_file_width  = BigDecimal(image_file_width) if image_file_width
-      image_file_height = BigDecimal(image_file_height) if image_file_height
-
-      return [width.to_i, height.to_i] if !enlarge && width <= image_file_width && height <= image_file_height
-
-      # Maximum values of height and width given, aspect ratio preserved.
-      if height > width
-        return [(image_file_height * width / height).round, image_file_height]
-      else
-        return [image_file_width, (image_file_width * height / width).round]
-      end
-    elsif image_file_width
-      return [width.to_i, height.to_i] if !enlarge && width <= image_file_width
-
-      # Width given, height automagically selected to preserve aspect ratio.
-      return [image_file_width, (image_file_width * height / width).round]
-    else
-      return [width.to_i, height.to_i] if !enlarge && height <= image_file_height
-
-      # Height given, width automagically selected to preserve aspect ratio.
-      return [(image_file_height * width / height).round.to_i, image_file_height.to_i]
-    end
-
+    AspectRatio.resize(image_file_width, image_file_height, width, height).map(&:to_i)
   rescue
     nil
   end

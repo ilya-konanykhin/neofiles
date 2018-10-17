@@ -21,4 +21,5 @@ Gem::Specification.new do |s|
   s.add_dependency 'mini_magick', '3.7.0'     # image manipulation utility (wrapper around famous console tool ImageMagick)
   s.add_dependency 'png_quantizator', '0.2.1' # lossless PNG compression
   s.add_dependency 'aws-sdk', '~> 3'          # The official Amazon Web Services SDK for Ruby
+  s.add_dependency 'aspect_ratio'             # Image aspect ratio utilities.
 end
