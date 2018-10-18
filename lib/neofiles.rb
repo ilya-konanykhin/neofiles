@@ -1,4 +1,5 @@
 require 'neofiles/engine'
+require 'aspect_ratio'
 
 module Neofiles
   # Attach Neofiles specific routes in your routes.rb file:
@@ -34,11 +35,9 @@ module Neofiles
   #   width, height   - max width and height after resize
   #   resize_options  - {crop: '1'/'0'}, @see Neofiles::ImagesController#show
   #
-  # Can call ImageMagick.
-  #
   def resized_image_dimensions(image_file, width, height, resize_options)
     # dimensions are equal to requested ones if cropping
-    return width, height if crop_requested? resize_options
+    #return width, height if crop_requested? resize_options
 
     # otherwise ask ImageMagick - prepare input vars...
     image_file = Neofiles::Image.find image_file if image_file.is_a?(String)
@@ -52,23 +51,7 @@ module Neofiles
       image_file_height = image_file[:height]
     end
 
-    # no input, terminate
-    return if image_file_width.blank? || image_file_height.blank?
-
-    # image fits into requested dimensions, no resizing will occur
-    return image_file_width, image_file_height if image_file_width <= width && image_file_height <= height
-
-    # ... construct request ...
-    command = MiniMagick::CommandBuilder.new(:convert)            # convert input file...
-    command.size([image_file_width, image_file_height].join 'x')  # with the given dimensions...
-    command.xc('white')                                           # and filled with whites...
-    command.resize([width, height].join 'x')                      # to fit in the given rectangle...
-    command.push('info:-')                                        # return info about the resulting file
-
-    # ... and send it to ImageMagick
-    # the result will be: xc:white XC 54x100 54x100+0+0 16-bit DirectClass 0.070u 0:00.119
-    # extract dimensions and return them as array of integers
-    MiniMagick::Image.new(nil, nil).run(command).match(/ (\d+)x(\d+) /).values_at(1, 2).map(&:to_i)
+    AspectRatio.resize(image_file_width, image_file_height, width, height).map(&:to_i)
 
   rescue
     nil
