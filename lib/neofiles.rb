@@ -33,6 +33,7 @@ module Neofiles
   #
   #   image_file      - Neofiles::Image, ID or Hash
   #   width, height   - max width and height after resize
+  #   resize_options  - {crop: '1'/'0'}, @see Neofiles::ImagesController#show
   #
   def resized_image_dimensions(image_file, width, height, resize_options)
     # dimensions are equal to requested ones if cropping
