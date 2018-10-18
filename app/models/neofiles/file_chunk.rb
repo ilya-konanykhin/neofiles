@@ -7,7 +7,9 @@ class Neofiles::FileChunk
 
   store_in collection: Rails.application.config.neofiles.mongo_chunks_collection, client: Rails.application.config.neofiles.mongo_client
 
-  belongs_to :file, class_name: 'Neofiles::File'
+  # Mongoid bug: if you set `file_id` but not `file`, it still thinks the relation is missing and fails validation,
+  # so setting `optional: true` explicitly
+  belongs_to :file, class_name: 'Neofiles::File', optional: true
 
   field :n, type: Integer, default: 0 # что это за поле?
   field :data, type: BSON::Binary
