@@ -175,7 +175,7 @@ HTML
 
     if (image_file_width.present? && image_file_height.present?) && (image_file_width > 0 && image_file_height > 0)
       if we_need_resizing
-        ::Neofiles.resized_image_dimensions(image_file, width, height)
+        ::Neofiles.resized_image_dimensions(image_file, width, height, resize_options)
       else
         [image_file_width, image_file_height]
       end
