@@ -37,7 +37,7 @@ module Neofiles
   #
   def resized_image_dimensions(image_file, width, height, resize_options)
     # dimensions are equal to requested ones if cropping
-    #return width, height if crop_requested? resize_options
+    return width, height if crop_requested? resize_options
 
     # otherwise ask ImageMagick - prepare input vars...
     image_file = Neofiles::Image.find image_file if image_file.is_a?(String)
@@ -50,6 +50,12 @@ module Neofiles
       image_file_width = image_file[:width]
       image_file_height = image_file[:height]
     end
+
+    # no input, terminate
+    return if image_file_width.blank? || image_file_height.blank?
+
+    # image fits into requested dimensions, no resizing will occur
+    return image_file_width, image_file_height if image_file_width <= width && image_file_height <= height
 
     AspectRatio.resize(image_file_width, image_file_height, width, height).map(&:to_i)
 
