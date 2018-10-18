@@ -2,6 +2,11 @@
 - desc = file.try(:description).try(:to_s).try!(:strip).try!(:truncate, 15).presence
 - empty_desc = t 'neofiles.views.no_description'
 
+- if Rails.application.config.neofiles.album_append_create_side == :left
+  - if append_create and file
+    = render partial: 'file_compact', locals: {file: nil, input_name: input_name, widget_id: widget_id + '_ap', clean_remove: clean_remove, append_create: true, error: nil, disabled: disabled, multiple: multiple, with_desc: with_desc, no_wm: no_wm}
+
+
 - classes = []
 - classes << 'neofiles-image-compact-empty' unless file
 - classes << 'neofiles-image-compact-with-description' if file && with_desc
@@ -82,6 +87,7 @@
       $("##{widget_id}").image();
   });
 
-- if append_create and file
-  = render partial: 'file_compact', locals: {file: nil, input_name: input_name, widget_id: widget_id + '_ap', clean_remove: clean_remove, append_create: true, error: nil, disabled: disabled, multiple: multiple, with_desc: with_desc, no_wm: no_wm}
+- if Rails.application.config.neofiles.album_append_create_side == :right
+  - if append_create and file
+    = render partial: 'file_compact', locals: {file: nil, input_name: input_name, widget_id: widget_id + '_ap', clean_remove: clean_remove, append_create: true, error: nil, disabled: disabled, multiple: multiple, with_desc: with_desc, no_wm: no_wm}
 
