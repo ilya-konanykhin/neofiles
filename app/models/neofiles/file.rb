@@ -44,92 +44,42 @@ class Neofiles::File
 
   include Mongoid::Document
   include Mongoid::Timestamps
+  include Neofiles::DataStore::Mongo::FileHelper
 
   store_in collection: Rails.application.config.neofiles.mongo_files_collection, client: Rails.application.config.neofiles.mongo_client
-
-  has_many :chunks, dependent: :destroy, order: [:n, :asc], class_name: 'Neofiles::FileChunk'
-
-  DEFAULT_CHUNK_SIZE = Rails.application.config.neofiles.mongo_default_chunk_size
 
   field :filename, type: String
   field :content_type, type: String
   field :length, type: Integer, default: 0
-  field :chunk_size, type: Integer, default: DEFAULT_CHUNK_SIZE
   field :md5, type: String, default: Digest::MD5.hexdigest('')
   field :description, type: String
   field :owner_type, type: String
   field :owner_id, type: String
   field :is_deleted, type: Mongoid::Boolean
 
-  validates :filename, :length, :chunk_size, :md5, presence: true
-
   before_save :save_file
   after_save :nullify_unpersisted_file
 
-
-
-  # Yield block for each chunk.
-  def each(&block)
-    chunks.all.order_by([:n, :asc]).each do |chunk|
-      block.call(chunk.to_s)
-    end
-  end
-
-  # Get a portion of chunks, either via Range of Fixnum (length).
-  def slice(*args)
-    case args.first
-      when Range
-        range = args.first
-        first_chunk = (range.min / chunk_size).floor
-        last_chunk = (range.max / chunk_size).ceil
-        offset = range.min % chunk_size
-        length = range.max - range.min + 1
-      when Fixnum
-        start = args.first
-        start = self.length + start if start < 0
-        length = args.size == 2 ? args.last : 1
-        first_chunk = (start / chunk_size).floor
-        last_chunk = ((start + length) / chunk_size).ceil
-        offset = start % chunk_size
-    end
-
-    data = ''
-
-    chunks.where(n: first_chunk..last_chunk).order_by(n: :asc).each do |chunk|
-      data << chunk
-    end
-
-    data[offset, length]
-  end
-
   # Chunks bytes concatenated, that is the whole file content.
   def data
-    data = ''
-    each { |chunk| data << chunk }
-    data
+    self.class.read_data_stores.each do |store|
+      begin
+        return store.find(id).data
+      rescue Neofiles::DataStore::NotFoundException
+        next
+      end
+    end
   end
 
   # Encode bytes in base64.
   def base64
-    Array(to_s).pack('m')
+    Array(data).pack('m')
   end
 
   # Encode bytes id data uri.
   def data_uri(options = {})
     data = base64.chomp
     "data:#{content_type};base64,#{data}"
-  end
-
-  # Bytes as chunks array, if block is given — yield it.
-  def bytes(&block)
-    if block
-      each { |data| block.call(data) }
-      length
-    else
-      bytes = []
-      each { |data| bytes.push(*data) }
-      bytes
-    end
   end
 
 
@@ -159,26 +109,17 @@ class Neofiles::File
   # File length and md5 hash are computed automatically.
   def save_file
     if @file
-      self.chunks.delete_all
-
-      md5 = Digest::MD5.new
-      length, n = 0, 0
-
-      self.class.reading(@file) do |io|
-        self.class.chunking(io, chunk_size) do |buf|
-          md5 << buf
-          length += buf.size
-          chunk = self.chunks.build
-          chunk.data = self.class.binary_for(buf)
-          chunk.n = n
-          n += 1
-          chunk.save!
-          self.chunks.push(chunk)
+      self.class.write_data_stores.each do |store|
+        begin
+          data_store_object = store.new id
+          data_store_object.write @file
+          self.length = data_store_object.length
+          self.md5    = data_store_object.md5
+        rescue => ex
+          notify_airbrake(ex) if defined? notify_airbrake
+          next
         end
       end
-
-      self.length = length
-      self.md5    = md5.hexdigest
     end
   end
 
@@ -191,46 +132,6 @@ class Neofiles::File
   # To be redefined by descendants.
   def admin_compact_view(template)
     template.neofiles_link self, nil, target: '_blank'
-  end
-
-  # Yield block with IO stream made from input arg, which can be file name or other IO readable object.
-  def self.reading(arg, &block)
-    if arg.respond_to?(:read)
-      self.rewind(arg) do |io|
-        block.call(io)
-      end
-    else
-      open(arg.to_s) do |io|
-        block.call(io)
-      end
-    end
-  end
-
-  # Split IO stream by chunks chunk_size bytes each and yield each chunk in block.
-  def self.chunking(io, chunk_size, &block)
-    if io.method(:read).arity == 0
-      data = io.read
-      i = 0
-      loop do
-        offset = i * chunk_size
-        length = i + chunk_size < data.size ? chunk_size : data.size - offset
-
-        break if offset >= data.size
-
-        buf = data[offset, length]
-        block.call(buf)
-        i += 1
-      end
-    else
-      while buf = io.read(chunk_size)
-        block.call(buf)
-      end
-    end
-  end
-
-  # Construct Mongoid binary object from string of bytes.
-  def self.binary_for(*buf)
-    BSON::Binary.new(buf.join, :generic)
   end
 
   # Try different methods to extract file name or path from argument object.
@@ -300,24 +201,21 @@ class Neofiles::File
     class_by_file_name(extract_basename(file_object))
   end
 
-  # Yield IO-like argument to block rewinding it first, if possible.
-  def self.rewind(io, &block)
-    begin
-      pos = io.pos
-      io.flush
-      io.rewind
-    rescue
-      nil
-    end
+  def self.read_data_stores
+    get_stores_class_name Rails.application.config.neofiles.read_data_stores
+  end
 
-    begin
-      block.call(io)
-    ensure
-      begin
-        io.pos = pos
-      rescue
-        nil
-      end
+  def self.write_data_stores
+    get_stores_class_name Rails.application.config.neofiles.write_data_stores
+  end
+
+  # return array with names for each store
+  def self.get_stores_class_name(stores)
+    if stores.is_a?(Array)
+      stores.map { |store| Neofiles::DataStore.const_get(store.camelize) }
+    else
+      get_stores_class_name [stores]
     end
   end
+
 end
