@@ -61,12 +61,12 @@ module Neofiles
     out_aspect  = 1.0 * width / height
 
     if in_aspect > out_aspect
-      # If image is more "flat", width will always be equal to the requested width,
-      # and the height will be less than the requested height
+      # If image is more "flat", the output width will always be equal to the requested width,
+      # and the output height will be less than the requested height
       height = nil
     else
-      # If input image is more "stretched" vertically or is equal to output aspect ratio,
-      # the height is equal to the requested height, and the width is less than or equal to requested width
+      # If input image is more "stretched" vertically or its aspect ratio is equal to output aspect ratio,
+      # the output height will be equal to the requested height, and the output width will be less than or equal to the requested width
       width = nil
     end
 
