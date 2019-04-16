@@ -88,8 +88,9 @@ class Neofiles::AdminController < ApplicationController
 
       file_class = Neofiles::File.class_by_file_object(uploaded_file)
       file = file_class.new do |f|
+        default_wm = Rails.application.config.neofiles.default_wm
         f.description = data[:description].presence || old_file.try(:description)
-        f.no_wm = data[:no_wm].present? && data[:no_wm] != '0' if f.respond_to? :no_wm
+        f.no_wm = data[:no_wm].present? && data[:no_wm] != '0' || default_wm if f.respond_to? :no_wm
         f.file = uploaded_file
       end
 
