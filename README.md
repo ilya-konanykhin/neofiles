@@ -403,6 +403,10 @@ config.neofiles.image_max_crop_height = 2000 # users can request resizing only u
 config.neofiles.watermarker = ->(image, no_watermark: false, watermark_width:, watermark_height:) do
   ...
 end
+
+# picture when added is displayed on the right or left
+# also affects the order of displaying pictures
+config.neofiles.album_append_create_side = :left
 ```
 
 Roadmap, TODOs
