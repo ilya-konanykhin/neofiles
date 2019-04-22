@@ -58,11 +58,11 @@
       - popover_template = capture do
         .popover.neofiles-image-compact-description-popover(role="tooltip")
           .arrow
-          %h3.popover-title
-          .popover-content
+          %h3.popover-title.popover-header
+          .popover-content.popover-body
 
       .neofiles-image-compact-description
-        %a.neofiles-image-compact-description-handle(href="#" data-empty=empty_desc data-toggle="popover" data-trigger="click" data-placement="bottom" data-html="true" data-animation="false" data-title="#{t 'neofiles.views.description'}" data-content=description_form data-template=popover_template){class: ('neofiles-image-compact-description-empty' unless desc)}= desc || empty_desc
+        %a.neofiles-image-compact-description-handle(href="#" data-empty=empty_desc data-toggle="popover" data-trigger="click" data-placement="bottom" data-html="true" data-animation="false" data-title="#{t 'neofiles.views.description'}" data-content="#{description_form}" data-template="#{popover_template}" data-container="##{widget_id}"){class: ('neofiles-image-compact-description-empty' unless desc)}= desc || empty_desc
 
   %span.neofiles-image-compact-upload-icon
     %i.icon-upload.glyphicon.glyphicon-upload

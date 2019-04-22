@@ -1,4 +1,5 @@
 require 'neofiles/engine'
+require 'aspect_ratio'
 
 module Neofiles
   # Attach Neofiles specific routes in your routes.rb file:
@@ -34,8 +35,6 @@ module Neofiles
   #   width, height   - max width and height after resize
   #   resize_options  - {crop: '1'/'0'}, @see Neofiles::ImagesController#show
   #
-  # Can call ImageMagick.
-  #
   def resized_image_dimensions(image_file, width, height, resize_options)
     # dimensions are equal to requested ones if cropping
     return width, height if crop_requested? resize_options
@@ -58,17 +57,20 @@ module Neofiles
     # image fits into requested dimensions, no resizing will occur
     return image_file_width, image_file_height if image_file_width <= width && image_file_height <= height
 
-    # ... construct request ...
-    command = MiniMagick::CommandBuilder.new(:convert)            # convert input file...
-    command.size([image_file_width, image_file_height].join 'x')  # with the given dimensions...
-    command.xc('white')                                           # and filled with whites...
-    command.resize([width, height].join 'x')                      # to fit in the given rectangle...
-    command.push('info:-')                                        # return info about the resulting file
+    in_aspect   = 1.0 * image_file_width / image_file_height
+    out_aspect  = 1.0 * width / height
 
-    # ... and send it to ImageMagick
-    # the result will be: xc:white XC 54x100 54x100+0+0 16-bit DirectClass 0.070u 0:00.119
-    # extract dimensions and return them as array of integers
-    MiniMagick::Image.new(nil, nil).run(command).match(/ (\d+)x(\d+) /).values_at(1, 2).map(&:to_i)
+    if in_aspect > out_aspect
+      # If image is more "flat", the output width will always be equal to the requested width,
+      # and the output height will be less than the requested height
+      height = nil
+    else
+      # If input image is more "stretched" vertically or its aspect ratio is equal to output aspect ratio,
+      # the output height will be equal to the requested height, and the output width will be less than or equal to the requested width
+      width = nil
+    end
+
+    AspectRatio.resize(image_file_width, image_file_height, width, height).map(&:to_i)
 
   rescue
     nil
