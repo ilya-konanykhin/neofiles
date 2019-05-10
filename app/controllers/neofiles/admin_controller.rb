@@ -107,7 +107,8 @@ class Neofiles::AdminController < ApplicationController
 
     result = []
     file_objects.each_with_index do |file, i|
-      result << file_compact(data.merge(id: file.id, widget_id: "#{data[:widget_id]}_ap_#{i}", append_create: i == file_objects.count - 1 && !old_file && data[:append_create] == '1' ? '1' : '0'))
+      append_create_position = Rails.application.config.neofiles.album_append_create_side == :left ? i == 0 : i == file_objects.count - 1
+      result << file_compact(data.merge(id: file.id, widget_id: "#{data[:widget_id]}_ap_#{i}", append_create: append_create_position && !old_file && data[:append_create] == '1' ? '1' : '0'))
     end
 
     if result.empty?

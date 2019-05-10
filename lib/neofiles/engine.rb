@@ -16,6 +16,8 @@ module Neofiles
     config.neofiles.image_max_crop_width  = 2000 # users can request resizing only up to this width
     config.neofiles.image_max_crop_height = 2000 # users can request resizing only up to this height
 
+    config.neofiles.album_append_create_side = :right # picture when added is displayed on the right
+
     # default watermarker — redefine to set special watermarking logic
     # by default, watermark only images larger than 300x300 with watermark at the bottom center, taken from file
     # /app/assets/images/neofiles/watermark.png
