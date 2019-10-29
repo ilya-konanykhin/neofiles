@@ -130,8 +130,7 @@ class Neofiles::AdminController < ApplicationController
     file.save!
 
     return render plain: '' if data[:clean_remove].present? && data[:clean_remove] != '0'
-
-    redirect_to neofiles_file_compact_path(data.merge(id: nil))
+    redirect_to data.merge(id: nil, protocol: request.protocol, controller: 'admin', action: 'file_compact')
   end
 
   # As Neofiles treats files as immutables, this method updates only auxiliary fields: description, no_wm etc.
