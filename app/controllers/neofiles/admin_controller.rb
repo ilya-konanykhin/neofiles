@@ -130,6 +130,7 @@ class Neofiles::AdminController < ApplicationController
     file.save!
 
     return render plain: '' if data[:clean_remove].present? && data[:clean_remove] != '0'
+
     redirect_to data.merge(id: nil, protocol: request.protocol, controller: 'admin', action: 'file_compact')
   end
 
