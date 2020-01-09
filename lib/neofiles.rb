@@ -20,7 +20,7 @@ module Neofiles
 
       # web frontend for serving images and other files
       get  '/serve/:id', to: 'files#show', as: :neofiles_file
-      get  '/serve-image/:id(/:format(/c:crop)(/q:quality))', to: 'images#show', as: :neofiles_image, constraints: {format: /[1-9]\d*x[1-9]\d*/, crop: /[10]/, quality: /[1-9]\d*/}
+      get  '/serve-image/:id(/:format(/c:crop)(/q:quality))', to: 'images#show', as: :neofiles_image, format: false, constraints: {format: /[1-9]\d*x[1-9]\d*/, crop: /[10]/, quality: /[1-9]\d*/}
 
       # serve images w/o watermark - path has prefix nowm_ to let Nginx ot other web server not cache these queries,
       # unlike usual /serve-image/:id
