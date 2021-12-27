@@ -81,15 +81,23 @@ class Neofiles::DataStore::AmazonS3
   end
 
   def client
-    @client ||= Aws::S3::Client.new(
-        region: Rails.application.config.neofiles.amazon_s3_region,
-        credentials: Aws::Credentials.new(
-            Rails.application.config.neofiles.amazon_s3_api,
-            Rails.application.config.neofiles.amazon_s3_secret
-        )
-    )
+    @client ||= Aws::S3::Client.new(client_params)
   rescue Aws::S3::Errors::ServiceError
     nil
+  end
+
+  def client_params
+    {
+      region: Rails.application.config.neofiles.amazon_s3_region,
+      credentials: Aws::Credentials.new(
+        Rails.application.config.neofiles.amazon_s3_api,
+        Rails.application.config.neofiles.amazon_s3_secret
+      )
+    }.tap do |result|
+      if Rails.application.config.neofiles.amazon_s3_endpoint
+        result[:endpoint] = Rails.application.config.neofiles.amazon_s3_endpoint
+      end
+    end
   end
 
 end
