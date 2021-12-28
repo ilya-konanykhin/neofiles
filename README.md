@@ -407,6 +407,13 @@ end
 # picture when added is displayed on the right or left
 # also affects the order of displaying pictures
 config.neofiles.album_append_create_side = :left
+
+# Amazon S3 settings
+config.neofiles.amazon_s3_region = 'us-east'
+config.neofiles.amazon_s3_api = 'KEY_ID'
+config.neofiles.amazon_s3_secret = 'KEY_SECRET'
+config.neofiles.amazon_s3_bucket = 'neofiles_prod'
+config.neofiles.amazon_s3_endpoint = 'https://some-s3-provider.com' # optional
 ```
 
 Roadmap, TODOs
