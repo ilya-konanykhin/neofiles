@@ -2,6 +2,7 @@
 # If you want to work with amazon s3 you need set values for the following parameters in your config file
 # amazon_s3_region - the AWS region to connect to. The region is used to construct the client endpoint.
 # amazon_s3_api, amazon_s3_secret - used to set credentials statically
+# amazon_s3_endpoint - change if using another S3-compatible provider
 # bucket_name - storage name in amazon_s3. Bucket must have a name that conforms to the naming requirements for non-US Standard regions.
 # http://docs.aws.amazon.com/awscloudtrail/latest/userguide/cloudtrail-s3-bucket-naming-requirements.html
 # File will be named as id of the Neofiles::File object
