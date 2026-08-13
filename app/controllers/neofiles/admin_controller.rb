@@ -9,7 +9,7 @@
 class Neofiles::AdminController < ApplicationController
 
   # TODO: remove this! it should be controlled on application side
-  skip_before_action :verify_authenticity_token
+  skip_before_action :verify_authenticity_token, raise: false
 
   # Build AJAX edit/upload form for a single file in compact way: small file thumbnail + misc buttons, like "delete",
   # "change options" etc.
